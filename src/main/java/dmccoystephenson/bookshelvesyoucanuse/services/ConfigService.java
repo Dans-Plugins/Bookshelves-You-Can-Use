@@ -1,4 +1,4 @@
-package preponderous.exampleponderplugin.services;
+package dmccoystephenson.bookshelvesyoucanuse.services;
 
 /*
     To add a new config option, the following methods must be altered:
@@ -10,16 +10,16 @@ package preponderous.exampleponderplugin.services;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import preponderous.exampleponderplugin.ExamplePonderPlugin;
+import dmccoystephenson.bookshelvesyoucanuse.BookshelvesYouCanUse;
 
 /**
  * @author Daniel McCoy Stephenson
  */
 public class ConfigService {
-    private final ExamplePonderPlugin plugin;
+    private final BookshelvesYouCanUse plugin;
     private boolean altered = false;
 
-    public ConfigService(ExamplePonderPlugin plugin) {
+    public ConfigService(BookshelvesYouCanUse plugin) {
         this.plugin = plugin;
     }
 
