@@ -2,7 +2,8 @@ package dmccoystephenson.bookshelvesyoucanuse;
 
 import dmccoystephenson.bookshelvesyoucanuse.commands.DefaultCommand;
 import dmccoystephenson.bookshelvesyoucanuse.commands.HelpCommand;
-import dmccoystephenson.bookshelvesyoucanuse.eventhandlers.JoinHandler;
+import dmccoystephenson.bookshelvesyoucanuse.data.TemporaryData;
+import dmccoystephenson.bookshelvesyoucanuse.eventhandlers.InteractHandler;
 import dmccoystephenson.bookshelvesyoucanuse.services.ConfigService;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -23,6 +24,7 @@ public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
     private final String pluginVersion = "v" + getDescription().getVersion();
     private final CommandService commandService = new CommandService(getPonder());
     private final ConfigService configService = new ConfigService(this);
+    private TemporaryData temporaryData = new TemporaryData();
 
     /**
      * This runs when the server starts.
@@ -116,7 +118,7 @@ public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
     private void registerEventHandlers() {
         EventHandlerRegistry eventHandlerRegistry = new EventHandlerRegistry();
         ArrayList<Listener> listeners = new ArrayList<>(Arrays.asList(
-                new JoinHandler()
+                new InteractHandler(temporaryData, this)
         ));
         eventHandlerRegistry.registerEventHandlers(listeners, this);
     }
