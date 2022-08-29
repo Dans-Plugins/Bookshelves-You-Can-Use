@@ -44,10 +44,10 @@ public class InteractHandler implements Listener {
             BookshelfInventory inventory;
             try {
                 // get existing bookshelf
-                inventory = bookshelvesYouCanUse.getBookshelfInventory(player.getLocation());
+                inventory = bookshelvesYouCanUse.getBookshelfInventory(block.getLocation());
             } catch (BookshelfInventoryNotFoundException e) {
                 // create new bookshelf if not found
-                inventory = createBookshelfInventory(player.getLocation());
+                inventory = createBookshelfInventory(block.getLocation());
             }
             player.openInventory(inventory.getInventory());
             temporaryData.addPlayerToPlayersOnInteractCooldown(player);
