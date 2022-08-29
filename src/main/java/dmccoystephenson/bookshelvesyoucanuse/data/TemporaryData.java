@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * @author Daniel McCoy Stephenson
+ * @since August 28th, 2022
+ */
 public class TemporaryData {
     private List<UUID> playersOnInteractCooldown = new ArrayList<>();
 

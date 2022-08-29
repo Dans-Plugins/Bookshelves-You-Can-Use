@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 /**
  * @author Daniel McCoy Stephenson
+ * @since August 28th, 2022
  */
 public class DefaultCommand extends AbstractPluginCommand {
     private final BookshelvesYouCanUse plugin;

@@ -14,6 +14,7 @@ import dmccoystephenson.bookshelvesyoucanuse.BookshelvesYouCanUse;
 
 /**
  * @author Daniel McCoy Stephenson
+ * @since August 28th, 2022
  */
 public class ConfigService {
     private final BookshelvesYouCanUse plugin;

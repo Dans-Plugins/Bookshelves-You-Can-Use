@@ -2,8 +2,10 @@ package dmccoystephenson.bookshelvesyoucanuse.eventhandlers;
 
 import dmccoystephenson.bookshelvesyoucanuse.BookshelvesYouCanUse;
 import dmccoystephenson.bookshelvesyoucanuse.data.TemporaryData;
+import dmccoystephenson.bookshelvesyoucanuse.exceptions.BookshelfInventoryNotFoundException;
 import dmccoystephenson.bookshelvesyoucanuse.objects.BookshelfInventory;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -11,6 +13,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+/**
+ * @author Daniel McCoy Stephenson
+ * @since August 28th, 2022
+ */
 public class InteractHandler implements Listener {
     private TemporaryData temporaryData;
     private BookshelvesYouCanUse bookshelvesYouCanUse;
@@ -35,11 +41,24 @@ public class InteractHandler implements Listener {
 
         if (block.getType() == Material.BOOKSHELF) {
             player.sendMessage("You rummage through the bookshelf.");
-            BookshelfInventory inventory = new BookshelfInventory(block.getLocation());
+            BookshelfInventory inventory;
+            try {
+                // get existing bookshelf
+                inventory = bookshelvesYouCanUse.getBookshelfInventory(player.getLocation());
+            } catch (BookshelfInventoryNotFoundException e) {
+                // create new bookshelf if not found
+                inventory = createBookshelfInventory(player.getLocation());
+            }
             player.openInventory(inventory.getInventory());
             temporaryData.addPlayerToPlayersOnInteractCooldown(player);
             removePlayerFromCooldownListWithDelay(player);
         }
+    }
+
+    private BookshelfInventory createBookshelfInventory(Location location) {
+        BookshelfInventory inventory = new BookshelfInventory(location);
+        bookshelvesYouCanUse.getBookshelfInventories().add(inventory);
+        return inventory;
     }
 
     private void removePlayerFromCooldownListWithDelay(Player player) {

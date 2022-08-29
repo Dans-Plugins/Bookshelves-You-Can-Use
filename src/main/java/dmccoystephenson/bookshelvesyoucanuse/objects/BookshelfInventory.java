@@ -4,6 +4,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.inventory.Inventory;
 
+/**
+ * @author Daniel McCoy Stephenson
+ * @since August 28th, 2022
+ */
 public class BookshelfInventory {
    private int x;
    private int y;

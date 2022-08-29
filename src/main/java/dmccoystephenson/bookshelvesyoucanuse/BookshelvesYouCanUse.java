@@ -4,7 +4,10 @@ import dmccoystephenson.bookshelvesyoucanuse.commands.DefaultCommand;
 import dmccoystephenson.bookshelvesyoucanuse.commands.HelpCommand;
 import dmccoystephenson.bookshelvesyoucanuse.data.TemporaryData;
 import dmccoystephenson.bookshelvesyoucanuse.eventhandlers.InteractHandler;
+import dmccoystephenson.bookshelvesyoucanuse.exceptions.BookshelfInventoryNotFoundException;
+import dmccoystephenson.bookshelvesyoucanuse.objects.BookshelfInventory;
 import dmccoystephenson.bookshelvesyoucanuse.services.ConfigService;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.Listener;
@@ -19,12 +22,14 @@ import java.util.Arrays;
 
 /**
  * @author Daniel McCoy Stephenson
+ * @since August 28th, 2022
  */
 public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
     private final String pluginVersion = "v" + getDescription().getVersion();
     private final CommandService commandService = new CommandService(getPonder());
     private final ConfigService configService = new ConfigService(this);
     private TemporaryData temporaryData = new TemporaryData();
+    private ArrayList<BookshelfInventory> bookshelfInventories = new ArrayList<>();
 
     /**
      * This runs when the server starts.
@@ -90,6 +95,19 @@ public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
      */
     public boolean isDebugEnabled() {
         return configService.getBoolean("debugMode");
+    }
+
+    public ArrayList<BookshelfInventory> getBookshelfInventories() {
+        return bookshelfInventories;
+    }
+
+    public BookshelfInventory getBookshelfInventory(Location location) throws BookshelfInventoryNotFoundException {
+        for (BookshelfInventory bookshelf : bookshelfInventories) {
+            if (bookshelf.getX() == location.getBlockX() && bookshelf.getY() == location.getBlockY() && bookshelf.getZ() == location.getBlockZ() && bookshelf.getWorldName().equals(location.getWorld().getName())) {
+                return bookshelf;
+            }
+        }
+        throw new BookshelfInventoryNotFoundException();
     }
 
     private void initializeConfig() {

@@ -9,6 +9,7 @@ import java.util.List;
 
 /**
  * @author Daniel McCoy Stephenson
+ * @since August 28th, 2022
  */
 public class HelpCommand extends AbstractPluginCommand {
 
