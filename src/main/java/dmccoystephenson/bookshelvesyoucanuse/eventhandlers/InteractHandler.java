@@ -2,6 +2,7 @@ package dmccoystephenson.bookshelvesyoucanuse.eventhandlers;
 
 import dmccoystephenson.bookshelvesyoucanuse.BookshelvesYouCanUse;
 import dmccoystephenson.bookshelvesyoucanuse.data.TemporaryData;
+import dmccoystephenson.bookshelvesyoucanuse.objects.BookshelfInventory;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -34,6 +35,8 @@ public class InteractHandler implements Listener {
 
         if (block.getType() == Material.BOOKSHELF) {
             player.sendMessage("You rummage through the bookshelf.");
+            BookshelfInventory inventory = new BookshelfInventory(block.getLocation());
+            player.openInventory(inventory.getInventory());
             temporaryData.addPlayerToPlayersOnInteractCooldown(player);
             removePlayerFromCooldownListWithDelay(player);
         }
