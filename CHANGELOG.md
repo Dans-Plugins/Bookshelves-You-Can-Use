@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - Initial release.
-- Right-click bookshelves to open a 9-slot inventory.
+- Interact/click bookshelves to open a 9-slot inventory.
 - Per-bookshelf inventories tracked by block location.
 - Interact cooldown to prevent accidental double-opens.
 - Help command (`/bycu help`).

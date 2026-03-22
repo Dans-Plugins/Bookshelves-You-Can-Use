@@ -13,5 +13,5 @@ All commands can be accessed via `/bookshelvesyoucanuse` or the shorter alias `/
 ### /bycu help
 
 **Description:** Displays the list of available commands.
-**Permission:** `epp.help`
+**Permission:** `bycu.help`
 **Usage:** `/bycu help`

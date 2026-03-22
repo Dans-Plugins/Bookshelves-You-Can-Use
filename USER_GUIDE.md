@@ -4,7 +4,7 @@
 
 - A Minecraft server running Spigot (or a Spigot-compatible fork) version 1.13 or later.
 - A Java runtime (JRE or JDK) version 9 or later on the server (the plugin is compiled for Java 9 bytecode).
-- The [Ponder](https://github.com/Preponderous-Software/Ponder) library must be available (it is shaded into the plugin JAR automatically).
+- The [Ponder](https://github.com/Preponderous-Software/Ponder) library (already bundled inside the plugin JAR; no separate installation required).
 
 ## First Steps
 
@@ -36,7 +36,7 @@ After interacting with a bookshelf, there is a 2-second cooldown before you can 
 
 | Permission | Default | Description |
 |------------|---------|-------------|
-| `epp.help` | `true` | Allows the player to use the help command. |
+| `bycu.help` | `true` | Allows the player to use the help command. |
 
 ## Notes
 
