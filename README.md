@@ -2,7 +2,7 @@
 
 ## Description
 
-Bookshelves You Can Use is a Minecraft plugin that turns bookshelf blocks into usable storage containers. Right-click any bookshelf to open a 9-slot inventory where you can store and retrieve items.
+Bookshelves You Can Use is a Minecraft plugin that turns bookshelf blocks into usable storage containers. Click any bookshelf block to open a 9-slot inventory where you can store and retrieve items.
 
 ## Installation
 
