@@ -16,15 +16,15 @@ public class DefaultCommand extends AbstractPluginCommand {
     private final BookshelvesYouCanUse plugin;
 
     public DefaultCommand(BookshelvesYouCanUse plugin) {
-        super(new ArrayList<>(Arrays.asList("default")), new ArrayList<>(Arrays.asList("epp.default")));
+        super(new ArrayList<>(Arrays.asList("default")), new ArrayList<>());
         this.plugin = plugin;
     }
 
     @Override
     public boolean execute(CommandSender commandSender) {
-        commandSender.sendMessage(ChatColor.AQUA + "ExamplePonderPlugin " + plugin.getVersion());
+        commandSender.sendMessage(ChatColor.AQUA + "BookshelvesYouCanUse " + plugin.getVersion());
         commandSender.sendMessage(ChatColor.AQUA + "Developed by: Daniel Stephenson");
-        commandSender.sendMessage(ChatColor.AQUA + "Wiki: https://github.com/Preponderous-Software/ExamplePonderPlugin/wiki");
+        commandSender.sendMessage(ChatColor.AQUA + "Wiki: https://github.com/Dans-Plugins/Bookshelves-You-Can-Use/wiki");
         return true;
     }
 
