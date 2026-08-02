@@ -14,12 +14,12 @@ import java.util.List;
 public class HelpCommand extends AbstractPluginCommand {
 
     public HelpCommand() {
-        super(new ArrayList<>(List.of("help")), new ArrayList<>(List.of("epp.help")));
+        super(new ArrayList<>(List.of("help")), new ArrayList<>(List.of("bycu.help")));
     }
 
     @Override
     public boolean execute(CommandSender commandSender) {
-        commandSender.sendMessage(ChatColor.AQUA + "/epp help");
+        commandSender.sendMessage(ChatColor.AQUA + "/bycu help");
         return true;
     }
 
