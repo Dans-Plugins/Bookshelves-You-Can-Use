@@ -47,10 +47,6 @@ Issues are grouped into [milestones](https://github.com/Dans-Plugins/Bookshelves
 8. Open a pull request against `main`, link the related issue with `#<number>`.
 9. Address review feedback.
 
-### Language Files
-
-Update `src/main/resources/lang/` for any user-facing string changes.
-
 ## Testing
 
 Run the build with:
