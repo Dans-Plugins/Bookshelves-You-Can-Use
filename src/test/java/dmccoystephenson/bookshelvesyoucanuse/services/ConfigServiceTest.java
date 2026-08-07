@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -64,7 +65,7 @@ class ConfigServiceTest {
         assertEquals(7, configService.getInt("someInt"));
         assertEquals(1.5, configService.getDouble("someDouble"));
         assertEquals("hello", configService.getString("someString"));
-        assertEquals(config, configService.getConfig());
+        assertSame(config, configService.getConfig());
     }
 
     @Test
