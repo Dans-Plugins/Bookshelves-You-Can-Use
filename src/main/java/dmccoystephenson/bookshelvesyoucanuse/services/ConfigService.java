@@ -1,14 +1,10 @@
 package dmccoystephenson.bookshelvesyoucanuse.services;
 
 /*
-    To add a new config option, the following methods must be altered:
-    - saveMissingConfigDefaultsIfNotPresent
-    - setConfigOption()
-    - sendConfigList()
+    To add a new config option, the following method must be altered:
+    - saveMissingConfigDefaultsIfNotPresent()
  */
 
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import dmccoystephenson.bookshelvesyoucanuse.BookshelvesYouCanUse;
 
@@ -18,7 +14,6 @@ import dmccoystephenson.bookshelvesyoucanuse.BookshelvesYouCanUse;
  */
 public class ConfigService {
     private final BookshelvesYouCanUse plugin;
-    private boolean altered = false;
 
     public ConfigService(BookshelvesYouCanUse plugin) {
         this.plugin = plugin;
@@ -37,43 +32,6 @@ public class ConfigService {
 
         getConfig().options().copyDefaults(true);
         plugin.saveConfig();
-    }
-
-    public void setConfigOption(String option, String value, CommandSender sender) {
-        if (getConfig().isSet(option)) {
-            if (option.equalsIgnoreCase("version")) {
-                sender.sendMessage(ChatColor.RED + "Cannot set version.");
-                return;
-            } else if (option.equalsIgnoreCase("A")) {
-                getConfig().set(option, Integer.parseInt(value));
-                sender.sendMessage(ChatColor.GREEN + "Integer set.");
-            } else if (option.equalsIgnoreCase("debugMode")) {
-                getConfig().set(option, Boolean.parseBoolean(value));
-                sender.sendMessage(ChatColor.GREEN + "Boolean set.");
-            } else if (option.equalsIgnoreCase("C")) {
-                getConfig().set(option, Double.parseDouble(value));
-                sender.sendMessage(ChatColor.GREEN + "Double set.");
-            } else {
-                getConfig().set(option, value);
-                sender.sendMessage(ChatColor.GREEN + "String set.");
-            }
-
-            // save
-            plugin.saveConfig();
-            altered = true;
-        } else {
-            sender.sendMessage(ChatColor.RED + "That config option wasn't found.");
-        }
-    }
-
-    public void sendConfigList(CommandSender sender) {
-        sender.sendMessage(ChatColor.AQUA + "=== Config List ===");
-        sender.sendMessage(ChatColor.AQUA + "version: " + getConfig().getString("version")
-                + ", debugMode: " + getString("debugMode"));
-    }
-
-    public boolean hasBeenAltered() {
-        return altered;
     }
 
     public FileConfiguration getConfig() {

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Removed
+
+- Unreachable config-editing code in `ConfigService` (`setConfigOption`, `sendConfigList`, and the `hasBeenAltered` flag that only `setConfigOption` ever wrote), including leftover `ExamplePonderPlugin` template branches for placeholder config options named `A` and `C` that this plugin never had. No command exposed any of it, so plugin behavior is unchanged.
+
 ### Fixed
 
 - `/bycu help` and `/bycu` no longer show leftover `ExamplePonderPlugin` template text (wrong plugin name, wrong wiki link, wrong usage string) and `/bycu help`'s permission node now matches the `bycu.help` permission declared in `plugin.yml` (previously `epp.help`, which was never granted by default, silently blocking non-op players).
