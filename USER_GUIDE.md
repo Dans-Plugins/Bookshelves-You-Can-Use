@@ -10,21 +10,21 @@
 
 1. Install the plugin by placing the JAR file in your server's `plugins/` folder.
 2. Restart the server.
-3. Interact with any bookshelf block in the world to open its inventory.
+3. Right-click any bookshelf block in the world to open its inventory.
 
 ## Common Scenarios
 
 ### Storing Items in a Bookshelf
 
 1. Walk up to a bookshelf block in the world.
-2. Interact with the bookshelf.
+2. Right-click the bookshelf.
 3. A 9-slot inventory will open with the title "Bookshelf".
 4. Place items into the inventory.
 5. Close the inventory. Your items will remain in the bookshelf until the server restarts.
 
 ### Retrieving Items from a Bookshelf
 
-1. Interact with a bookshelf that already has items stored in it.
+1. Right-click a bookshelf that already has items stored in it.
 2. Take the items you need from the inventory.
 3. Close the inventory.
 
@@ -42,3 +42,5 @@ After interacting with a bookshelf, there is a 2-second cooldown before you can 
 
 - Bookshelf inventories are stored in memory and are **not** persisted across server restarts.
 - Each bookshelf block in the world has its own independent inventory.
+- Only right-clicks open a bookshelf. Left-clicking is left alone, so bookshelves are broken the usual way.
+- A right-click that opens a bookshelf is cancelled, so a held block is not placed against the bookshelf at the same time.

@@ -111,7 +111,7 @@ public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
     }
 
     private void initializeConfig() {
-        if (configFileExists()) {
+        if (configFileExists(getDataFolder())) {
             performCompatibilityChecks();
         }
         else {
@@ -119,8 +119,13 @@ public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
         }
     }
 
-    private boolean configFileExists() {
-        return new File("./plugins/" + getName() + "/config.yml").exists();
+    /**
+     * Checks whether the plugin's config file is already present in the plugin's data folder.
+     * @param dataFolder The plugin's data folder, as provided by Bukkit.
+     * @return A boolean indicating whether config.yml exists in the given folder.
+     */
+    boolean configFileExists(File dataFolder) {
+        return new File(dataFolder, "config.yml").exists();
     }
 
     private void performCompatibilityChecks() {
