@@ -29,7 +29,7 @@ public class InteractHandler implements Listener {
 
     @EventHandler
     public void handle(PlayerInteractEvent event) {
-        // left clicks begin block breaking and shouldn't open the bookshelf
+        // only a right click on a block opens a bookshelf - a left click begins breaking it
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
