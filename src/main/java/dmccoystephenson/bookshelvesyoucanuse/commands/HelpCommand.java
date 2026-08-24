@@ -19,6 +19,8 @@ public class HelpCommand extends AbstractPluginCommand {
 
     @Override
     public boolean execute(CommandSender commandSender) {
+        // one line per command documented in COMMANDS.md, in the order it lists them
+        commandSender.sendMessage(ChatColor.AQUA + "/bycu");
         commandSender.sendMessage(ChatColor.AQUA + "/bycu help");
         return true;
     }
