@@ -6,16 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Fixed
-
-- The `Dev Release` workflow now retries publishing the `dev` prerelease before giving up. The release and its tag have to be deleted and recreated for the tag to move to the new commit, and a transient API failure inside that window previously left the repository with no `dev` release at all until the workflow was re-run by hand. Each attempt now starts from a clean slate, and an exhausted retry fails loudly.
-
 ### Added
 
 - A `Dev Release` workflow, which republishes a rolling `dev` prerelease of `main` on every non-documentation push. This is what Dan's Plugin Manager's experimental channel installs from: `/dpm get bookshelvesyoucanuse --experimental` reads `releases/tags/dev`, so without it there is nothing for that command to download. The prerelease is unreleased, unreviewed code and is marked as such.
 
 ### Fixed
 
+- `/bycu help` now lists `/bycu` alongside `/bycu help`. `COMMANDS.md` describes the help command as displaying the list of available commands and documents both, but only the second was printed, so the plugin-information command was invisible to a player who never read the documentation.
+- The `Dev Release` workflow now retries publishing the `dev` prerelease before giving up. The release and its tag have to be deleted and recreated for the tag to move to the new commit, and a transient API failure inside that window previously left the repository with no `dev` release at all until the workflow was re-run by hand. Each attempt now starts from a clean slate, and an exhausted retry fails loudly.
 - Left-clicking a bookshelf no longer opens its inventory. Only right-clicks do, so bookshelves can be broken normally again — previously the inventory re-opened on every punch, which interrupted block breaking.
 - A right-click that opens a bookshelf is now cancelled, so a held block is no longer placed against the bookshelf while its inventory opens.
 - The plugin's config file is now located through Bukkit's data folder rather than a hardcoded `./plugins/<name>/config.yml` path. On a server whose working directory or plugins directory differs from the assumed layout, the file was reported as missing and the config defaults were rewritten on every startup instead of the compatibility checks running.
