@@ -32,7 +32,7 @@ class HelpCommandTest {
      * so every command documented there is expected, in the order that document lists them.
      */
     @Test
-    void executeListsEveryCommandDocumentedInCommandsMarkdown() {
+    void executeSendsEveryDocumentedCommand() {
         HelpCommand helpCommand = new HelpCommand();
         CommandSender commandSender = mock(CommandSender.class);
 
