@@ -1,30 +1,64 @@
 package dmccoystephenson.bookshelvesyoucanuse;
 
+import dmccoystephenson.bookshelvesyoucanuse.exceptions.BookshelfInventoryNotFoundException;
+import dmccoystephenson.bookshelvesyoucanuse.objects.BookshelfInventory;
+import dmccoystephenson.bookshelvesyoucanuse.services.ConfigService;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.inventory.Inventory;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.MockedStatic;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Daniel McCoy Stephenson
  * @since August 28th, 2022
  */
 class BookshelvesYouCanUseTest {
+    private MockedStatic<Bukkit> bukkit;
     private BookshelvesYouCanUse plugin;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws BookshelfInventoryNotFoundException {
+        bukkit = mockStatic(Bukkit.class);
+        // BookshelfInventory's constructor creates its inventory through Bukkit, so a distinct
+        // inventory per call keeps the bookshelf a lookup returns identifiable.
+        bukkit.when(() -> Bukkit.createInventory(any(), anyInt(), anyString()))
+                .thenAnswer(invocation -> mock(Inventory.class));
+
         plugin = mock(BookshelvesYouCanUse.class);
         doCallRealMethod().when(plugin).configFileExists(any());
+        doCallRealMethod().when(plugin).getBookshelfInventory(any());
+        doCallRealMethod().when(plugin).isVersionMismatched();
+        doCallRealMethod().when(plugin).isDebugEnabled();
+    }
+
+    @AfterEach
+    void tearDown() {
+        bukkit.close();
     }
 
     @Test
@@ -49,5 +83,155 @@ class BookshelvesYouCanUseTest {
 
         assertTrue(plugin.configFileExists(populatedFolder.toFile()));
         assertFalse(plugin.configFileExists(emptyFolder.toFile()));
+    }
+
+    @Test
+    void getBookshelfInventoryReturnsTheBookshelfTrackedAtThatLocation() throws BookshelfInventoryNotFoundException {
+        BookshelfInventory bookshelf = new BookshelfInventory(location(10, 64, -3, "world"));
+        trackBookshelves(bookshelf);
+
+        assertSame(bookshelf, plugin.getBookshelfInventory(location(10, 64, -3, "world")));
+    }
+
+    @Test
+    void getBookshelfInventoryPicksTheMatchingBookshelfOutOfSeveralTrackedOnes() throws BookshelfInventoryNotFoundException {
+        BookshelfInventory wanted = new BookshelfInventory(location(10, 64, -3, "world"));
+        trackBookshelves(
+                new BookshelfInventory(location(0, 0, 0, "world")),
+                wanted,
+                new BookshelfInventory(location(10, 64, -4, "world"))
+        );
+
+        assertSame(wanted, plugin.getBookshelfInventory(location(10, 64, -3, "world")));
+    }
+
+    /**
+     * The world name is part of the match, which is what keeps two bookshelves standing at the same
+     * coordinates in different worlds from being handed each other's contents.
+     */
+    @Test
+    void getBookshelfInventoryDoesNotMatchTheSameCoordinatesInAnotherWorld() {
+        trackBookshelves(new BookshelfInventory(location(10, 64, -3, "world")));
+
+        assertThrows(BookshelfInventoryNotFoundException.class,
+                () -> plugin.getBookshelfInventory(location(10, 64, -3, "world_nether")));
+    }
+
+    @Test
+    void getBookshelfInventoryDoesNotMatchWhenOnlySomeCoordinatesAgree() {
+        trackBookshelves(new BookshelfInventory(location(10, 64, -3, "world")));
+
+        assertThrows(BookshelfInventoryNotFoundException.class,
+                () -> plugin.getBookshelfInventory(location(11, 64, -3, "world")));
+        assertThrows(BookshelfInventoryNotFoundException.class,
+                () -> plugin.getBookshelfInventory(location(10, 65, -3, "world")));
+        assertThrows(BookshelfInventoryNotFoundException.class,
+                () -> plugin.getBookshelfInventory(location(10, 64, -2, "world")));
+    }
+
+    @Test
+    void getBookshelfInventoryThrowsWhenNoBookshelvesAreTracked() {
+        trackBookshelves();
+
+        assertThrows(BookshelfInventoryNotFoundException.class,
+                () -> plugin.getBookshelfInventory(location(10, 64, -3, "world")));
+    }
+
+    @Test
+    void isVersionMismatchedIsFalseWhenTheConfigCarriesNoVersion() {
+        givenConfigVersion(null);
+        when(plugin.getVersion()).thenReturn("v0.1.0");
+
+        assertFalse(plugin.isVersionMismatched());
+    }
+
+    @Test
+    void isVersionMismatchedIsFalseWhenThePluginHasNoVersion() {
+        givenConfigVersion("v0.1.0");
+        when(plugin.getVersion()).thenReturn(null);
+
+        assertFalse(plugin.isVersionMismatched());
+    }
+
+    @Test
+    void isVersionMismatchedIsFalseWhenTheVersionsAgree() {
+        givenConfigVersion("v0.1.0");
+        when(plugin.getVersion()).thenReturn("v0.1.0");
+
+        assertFalse(plugin.isVersionMismatched());
+    }
+
+    @Test
+    void isVersionMismatchedIgnoresCaseWhenComparingTheVersions() {
+        givenConfigVersion("V0.1.0-SNAPSHOT");
+        when(plugin.getVersion()).thenReturn("v0.1.0-snapshot");
+
+        assertFalse(plugin.isVersionMismatched());
+    }
+
+    @Test
+    void isVersionMismatchedIsTrueWhenTheVersionsDiffer() {
+        givenConfigVersion("v0.0.1");
+        when(plugin.getVersion()).thenReturn("v0.1.0");
+
+        assertTrue(plugin.isVersionMismatched());
+    }
+
+    /**
+     * The option name is asserted here rather than matched loosely: debug output is gated on
+     * debugMode specifically, and a lookup of some other key would read as disabled on every server.
+     */
+    @Test
+    void isDebugEnabledReadsTheDebugModeOptionThroughTheConfigService() {
+        ConfigService configService = mock(ConfigService.class);
+        when(configService.getBoolean("debugMode")).thenReturn(true);
+        plantOnPluginMock("configService", configService);
+
+        assertTrue(plugin.isDebugEnabled());
+    }
+
+    @Test
+    void isDebugEnabledIsFalseWhenTheDebugModeOptionIsUnset() {
+        ConfigService configService = mock(ConfigService.class);
+        when(configService.getBoolean("debugMode")).thenReturn(false);
+        plantOnPluginMock("configService", configService);
+
+        assertFalse(plugin.isDebugEnabled());
+    }
+
+    private void givenConfigVersion(String version) {
+        FileConfiguration config = mock(FileConfiguration.class);
+        when(config.getString("version")).thenReturn(version);
+        when(plugin.getConfig()).thenReturn(config);
+    }
+
+    private void trackBookshelves(BookshelfInventory... bookshelves) {
+        plantOnPluginMock("bookshelfInventories", new ArrayList<>(Arrays.asList(bookshelves)));
+    }
+
+    /**
+     * getBookshelfInventory and isDebugEnabled read their collaborators from fields directly rather
+     * than through a getter, and Mockito builds the plugin mock without running field initializers,
+     * so those fields have to be planted on the mock for the real methods to run against them.
+     */
+    private void plantOnPluginMock(String fieldName, Object value) {
+        try {
+            Field field = BookshelvesYouCanUse.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(plugin, value);
+        } catch (NoSuchFieldException | IllegalAccessException exception) {
+            throw new IllegalStateException("Could not plant " + fieldName + " on the plugin mock.", exception);
+        }
+    }
+
+    private Location location(int x, int y, int z, String worldName) {
+        World world = mock(World.class);
+        when(world.getName()).thenReturn(worldName);
+        Location location = mock(Location.class);
+        when(location.getWorld()).thenReturn(world);
+        when(location.getBlockX()).thenReturn(x);
+        when(location.getBlockY()).thenReturn(y);
+        when(location.getBlockZ()).thenReturn(z);
+        return location;
     }
 }
