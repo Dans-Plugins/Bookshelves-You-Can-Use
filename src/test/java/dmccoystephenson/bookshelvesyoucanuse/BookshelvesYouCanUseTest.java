@@ -2,6 +2,7 @@ package dmccoystephenson.bookshelvesyoucanuse;
 
 import dmccoystephenson.bookshelvesyoucanuse.exceptions.BookshelfInventoryNotFoundException;
 import dmccoystephenson.bookshelvesyoucanuse.objects.BookshelfInventory;
+import dmccoystephenson.bookshelvesyoucanuse.services.ConfigService;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -52,6 +53,7 @@ class BookshelvesYouCanUseTest {
         doCallRealMethod().when(plugin).configFileExists(any());
         doCallRealMethod().when(plugin).getBookshelfInventory(any());
         doCallRealMethod().when(plugin).isVersionMismatched();
+        doCallRealMethod().when(plugin).isDebugEnabled();
     }
 
     @AfterEach
@@ -175,24 +177,50 @@ class BookshelvesYouCanUseTest {
         assertTrue(plugin.isVersionMismatched());
     }
 
+    /**
+     * The option name is asserted here rather than matched loosely: debug output is gated on
+     * debugMode specifically, and a lookup of some other key would read as disabled on every server.
+     */
+    @Test
+    void isDebugEnabledReadsTheDebugModeOptionThroughTheConfigService() {
+        ConfigService configService = mock(ConfigService.class);
+        when(configService.getBoolean("debugMode")).thenReturn(true);
+        plantOnPluginMock("configService", configService);
+
+        assertTrue(plugin.isDebugEnabled());
+    }
+
+    @Test
+    void isDebugEnabledIsFalseWhenTheDebugModeOptionIsUnset() {
+        ConfigService configService = mock(ConfigService.class);
+        when(configService.getBoolean("debugMode")).thenReturn(false);
+        plantOnPluginMock("configService", configService);
+
+        assertFalse(plugin.isDebugEnabled());
+    }
+
     private void givenConfigVersion(String version) {
         FileConfiguration config = mock(FileConfiguration.class);
         when(config.getString("version")).thenReturn(version);
         when(plugin.getConfig()).thenReturn(config);
     }
 
-    /**
-     * getBookshelfInventory reads the bookshelfInventories field directly rather than through its
-     * getter, and Mockito builds the plugin mock without running field initializers, so the list has
-     * to be planted on the mock for the real lookup to run against it.
-     */
     private void trackBookshelves(BookshelfInventory... bookshelves) {
+        plantOnPluginMock("bookshelfInventories", new ArrayList<>(Arrays.asList(bookshelves)));
+    }
+
+    /**
+     * getBookshelfInventory and isDebugEnabled read their collaborators from fields directly rather
+     * than through a getter, and Mockito builds the plugin mock without running field initializers,
+     * so those fields have to be planted on the mock for the real methods to run against them.
+     */
+    private void plantOnPluginMock(String fieldName, Object value) {
         try {
-            Field field = BookshelvesYouCanUse.class.getDeclaredField("bookshelfInventories");
+            Field field = BookshelvesYouCanUse.class.getDeclaredField(fieldName);
             field.setAccessible(true);
-            field.set(plugin, new ArrayList<>(Arrays.asList(bookshelves)));
+            field.set(plugin, value);
         } catch (NoSuchFieldException | IllegalAccessException exception) {
-            throw new IllegalStateException("Could not plant the tracked bookshelves on the plugin mock.", exception);
+            throw new IllegalStateException("Could not plant " + fieldName + " on the plugin mock.", exception);
         }
     }
 
