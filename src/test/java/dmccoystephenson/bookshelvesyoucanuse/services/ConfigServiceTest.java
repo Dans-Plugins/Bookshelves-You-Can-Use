@@ -1,6 +1,7 @@
 package dmccoystephenson.bookshelvesyoucanuse.services;
 
 import dmccoystephenson.bookshelvesyoucanuse.BookshelvesYouCanUse;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,7 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -98,5 +103,69 @@ class ConfigServiceTest {
 
         assertEquals(42, configService.getIntOrDefault("someInt", 42));
         assertEquals(4.2, configService.getDoubleOrDefault("someDouble", 4.2));
+    }
+
+    /**
+     * A server upgraded from before usage reporting has no usage-reporting block in its
+     * config.yml, and an existing file is never rewritten with one. Bukkit registers the jar's
+     * config.yml as the defaults for the file, so the block has to be read through the defaults.
+     * A real YamlConfiguration is used here so the fall-through is measured, not assumed.
+     */
+    @Test
+    void usageReportingReadsThroughToTheBundledDefaultsWhenTheFileHasNoBlock() {
+        YamlConfiguration bundled = new YamlConfiguration();
+        bundled.set("usage-reporting.enabled", true);
+        bundled.set("usage-reporting.endpoint", "https://trace.danielstephenson.dev");
+        bundled.set("usage-reporting.key", "bundled-key");
+        config.setDefaults(bundled);
+
+        assertFalse(config.isSet("usage-reporting.key"), "the on-disk file itself must lack the block for this test to mean anything");
+        assertTrue(configService.isUsageReportingEnabled());
+        assertEquals("https://trace.danielstephenson.dev", configService.getUsageReportingEndpoint());
+        assertEquals("bundled-key", configService.getUsageReportingKey());
+    }
+
+    /**
+     * Pins the one-argument getters: the two-argument ones return their explicit fallback
+     * instead of the bundled default, which for the key would be "" and would turn reporting
+     * off on every existing installation.
+     */
+    @Test
+    void usageReportingUsesTheOneArgumentGettersSoBundledDefaultsApply() {
+        FileConfiguration mockedConfig = mock(FileConfiguration.class);
+        when(plugin.getConfig()).thenReturn(mockedConfig);
+        when(mockedConfig.getBoolean("usage-reporting.enabled")).thenReturn(true);
+        when(mockedConfig.getString("usage-reporting.endpoint")).thenReturn("https://trace.danielstephenson.dev");
+        when(mockedConfig.getString("usage-reporting.key")).thenReturn("bundled-key");
+
+        assertTrue(configService.isUsageReportingEnabled());
+        assertEquals("https://trace.danielstephenson.dev", configService.getUsageReportingEndpoint());
+        assertEquals("bundled-key", configService.getUsageReportingKey());
+        verify(mockedConfig, never()).getString(eq("usage-reporting.key"), anyString());
+        verify(mockedConfig, never()).getString(eq("usage-reporting.endpoint"), anyString());
+        verify(mockedConfig, never()).getBoolean(eq("usage-reporting.enabled"), anyBoolean());
+    }
+
+    @Test
+    void usageReportingIsOffWithNoKeyAnywhere() {
+        assertEquals("", configService.getUsageReportingKey(), "no key anywhere must read as off, not as null");
+        assertEquals("https://trace.danielstephenson.dev", configService.getUsageReportingEndpoint());
+        assertFalse(configService.isUsageReportingEnabled());
+    }
+
+    @Test
+    void usageReportingReadsTheConfiguredValuesOverTheBundledDefaults() {
+        YamlConfiguration bundled = new YamlConfiguration();
+        bundled.set("usage-reporting.enabled", true);
+        bundled.set("usage-reporting.endpoint", "https://trace.danielstephenson.dev");
+        bundled.set("usage-reporting.key", "bundled-key");
+        config.setDefaults(bundled);
+        config.set("usage-reporting.enabled", false);
+        config.set("usage-reporting.endpoint", "http://localhost:8080");
+        config.set("usage-reporting.key", "abc");
+
+        assertFalse(configService.isUsageReportingEnabled());
+        assertEquals("http://localhost:8080", configService.getUsageReportingEndpoint());
+        assertEquals("abc", configService.getUsageReportingKey());
     }
 }

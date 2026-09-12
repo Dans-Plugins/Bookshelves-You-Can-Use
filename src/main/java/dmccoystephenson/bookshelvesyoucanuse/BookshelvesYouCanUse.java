@@ -7,6 +7,7 @@ import dmccoystephenson.bookshelvesyoucanuse.eventhandlers.InteractHandler;
 import dmccoystephenson.bookshelvesyoucanuse.exceptions.BookshelfInventoryNotFoundException;
 import dmccoystephenson.bookshelvesyoucanuse.objects.BookshelfInventory;
 import dmccoystephenson.bookshelvesyoucanuse.services.ConfigService;
+import dmccoystephenson.bookshelvesyoucanuse.trace.TraceClient;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -19,6 +20,7 @@ import preponderous.ponder.minecraft.bukkit.tools.EventHandlerRegistry;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * @author Daniel McCoy Stephenson
@@ -31,6 +33,10 @@ public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
     private TemporaryData temporaryData = new TemporaryData();
     private ArrayList<BookshelfInventory> bookshelfInventories = new ArrayList<>();
 
+    // A no-op until the config has been read, so a command arriving before
+    // onEnable() finishes has something safe to report to.
+    private TraceClient trace = TraceClient.disabled();
+
     /**
      * This runs when the server starts.
      */
@@ -39,6 +45,15 @@ public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
         initializeConfig();
         registerEventHandlers();
         initializeCommandService();
+
+        // usage reporting: one event now, one per command; see config.yml
+        trace = TraceClient.builder(configService.getUsageReportingEndpoint(), getName())
+                .key(configService.getUsageReportingKey())
+                .enabled(configService.isUsageReportingEnabled())
+                .logger(getLogger())
+                .build();
+        trace.report("startup", null, Collections.singletonMap("version", getDescription().getVersion()));
+
         System.out.println("BYCU has enabled.");
     }
 
@@ -47,19 +62,21 @@ public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
      */
     @Override
     public void onDisable() {
-
+        trace.close();
     }
 
     /**
      * This method handles commands sent to the minecraft server and interprets them if the label matches one of the core commands.
      * @param sender The sender of the command.
-     * @param cmd The command that was sent. This is unused.
+     * @param cmd The command that was sent. Its name is what the usage report carries.
      * @param label The core command that has been invoked.
      * @param args Arguments of the core command. Often sub-commands.
      * @return A boolean indicating whether the execution of the command was successful.
      */
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        trace.report("command", null, Collections.singletonMap("name", cmd.getName()));
+
         if (args.length == 0) {
             DefaultCommand defaultCommand = new DefaultCommand(this);
             return defaultCommand.execute(sender);
@@ -115,6 +132,11 @@ public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
             performCompatibilityChecks();
         }
         else {
+            // A first start gets the jar's config.yml, comments and all, before the
+            // programmatic options are added to it. An existing file is left alone:
+            // options it lacks are read from the jar's copy, which Bukkit registers
+            // as the defaults for it (see ConfigService).
+            saveDefaultConfig();
             configService.saveMissingConfigDefaultsIfNotPresent();
         }
     }

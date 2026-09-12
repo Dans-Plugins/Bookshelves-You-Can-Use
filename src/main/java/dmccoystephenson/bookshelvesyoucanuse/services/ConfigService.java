@@ -13,6 +13,11 @@ import dmccoystephenson.bookshelvesyoucanuse.BookshelvesYouCanUse;
  * @since August 28th, 2022
  */
 public class ConfigService {
+    private static final String USAGE_REPORTING_ENABLED_KEY = "usage-reporting.enabled";
+    private static final String USAGE_REPORTING_ENDPOINT_KEY = "usage-reporting.endpoint";
+    private static final String USAGE_REPORTING_KEY_KEY = "usage-reporting.key";
+    private static final String DEFAULT_USAGE_REPORTING_ENDPOINT = "https://trace.danielstephenson.dev";
+
     private final BookshelvesYouCanUse plugin;
 
     public ConfigService(BookshelvesYouCanUse plugin) {
@@ -80,5 +85,30 @@ public class ConfigService {
             return defaultValue;
         }
         return toReturn;
+    }
+
+    // The one-argument getters, deliberately. The usage-reporting block lives in
+    // the jar's config.yml, and a config.yml that already exists on disk is never
+    // rewritten with it, so a server upgraded from a version before usage
+    // reporting has no usage-reporting block on disk. Bukkit registers the jar's
+    // config.yml as the defaults for that file, and the one-argument getters fall
+    // through to them -- but the two-argument getters return their explicit
+    // fallback instead, which for the key would be "" and would turn reporting
+    // off on every existing installation. Verified against YamlConfiguration,
+    // not assumed.
+
+    public boolean isUsageReportingEnabled() {
+        return getConfig().getBoolean(USAGE_REPORTING_ENABLED_KEY);
+    }
+
+    public String getUsageReportingEndpoint() {
+        String endpoint = getConfig().getString(USAGE_REPORTING_ENDPOINT_KEY);
+        return endpoint != null ? endpoint : DEFAULT_USAGE_REPORTING_ENDPOINT;
+    }
+
+    /** Empty when no key is configured or bundled, which the client treats as "off". */
+    public String getUsageReportingKey() {
+        String key = getConfig().getString(USAGE_REPORTING_KEY_KEY);
+        return key != null ? key : "";
     }
 }
