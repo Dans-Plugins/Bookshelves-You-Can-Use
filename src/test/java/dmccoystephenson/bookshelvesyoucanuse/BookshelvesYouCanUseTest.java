@@ -3,6 +3,7 @@ package dmccoystephenson.bookshelvesyoucanuse;
 import dmccoystephenson.bookshelvesyoucanuse.exceptions.BookshelfInventoryNotFoundException;
 import dmccoystephenson.bookshelvesyoucanuse.objects.BookshelfInventory;
 import dmccoystephenson.bookshelvesyoucanuse.services.ConfigService;
+import dmccoystephenson.bookshelvesyoucanuse.trace.TraceClient;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -21,6 +22,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -59,6 +61,24 @@ class BookshelvesYouCanUseTest {
     @AfterEach
     void tearDown() {
         bukkit.close();
+    }
+
+    @Test
+    void theStartupNoticeSaysWhatIsSentAndWhereToTurnItOff() {
+        String on = BookshelvesYouCanUse.usageReportingNotice("BookshelvesYouCanUse", null);
+
+        assertTrue(on.startsWith("Usage reporting is on: BookshelvesYouCanUse sends its name, version and command names to https://trace.danielstephenson.dev"), on);
+        assertTrue(on.contains("usage-reporting.enabled: false"), on);
+        assertTrue(on.contains("plugins/trace/config.yml"), on);
+        assertTrue(on.endsWith("Details: https://github.com/Stephenson-Software/trace#usage-reporting"), on);
+    }
+
+    @Test
+    void theStartupNoticeSaysWhyReportingIsOff() {
+        assertEquals("Usage reporting is off (config.yml).",
+                BookshelvesYouCanUse.usageReportingNotice("BookshelvesYouCanUse", TraceClient.REASON_CONFIG));
+        assertEquals("Usage reporting is off (server-wide config: plugins/trace/config.yml).",
+                BookshelvesYouCanUse.usageReportingNotice("BookshelvesYouCanUse", TraceClient.REASON_SERVER_WIDE));
     }
 
     @Test

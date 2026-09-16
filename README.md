@@ -30,6 +30,18 @@ Please fill out a bug report [here](https://github.com/Dans-Plugins/Bookshelves-
 
 - [Known Bugs](https://github.com/Dans-Plugins/Bookshelves-You-Can-Use/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
 
+## Usage reporting
+
+Usage reporting is on by default: when the plugin is enabled, and each time one of its commands is used, it sends its name, its version and the command's name to the author's trace server at `https://trace.danielstephenson.dev`, so it is known which plugins are actually in use. Nothing about players, worlds, IP addresses or the server is sent, and nothing typed after a command. The plugin prints one line on every startup saying whether reporting is on and, if not, why.
+
+To turn it off:
+
+- for this plugin only: `usage-reporting.enabled: false` in `plugins/BookshelvesYouCanUse/config.yml`
+- for every plugin on the server that reports to trace: `enabled: false` in `plugins/trace/config.yml` (created on first start; plugins never turn it back on)
+- for the whole server process: the environment variable `TRACE_USAGE_REPORTING=off` or `DO_NOT_TRACK=1`
+
+Details: https://github.com/Stephenson-Software/trace#usage-reporting
+
 ## Contributing
 
 - [CONTRIBUTING.md](CONTRIBUTING.md)

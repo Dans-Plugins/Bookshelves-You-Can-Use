@@ -147,6 +147,49 @@ class ConfigServiceTest {
     }
 
     @Test
+    void copiesTheBundledUsageReportingBlockOntoAFileThatLacksIt() {
+        YamlConfiguration bundled = new YamlConfiguration();
+        bundled.set("usage-reporting.enabled", true);
+        bundled.set("usage-reporting.endpoint", "https://trace.danielstephenson.dev");
+        bundled.set("usage-reporting.key", "bundled-key");
+        config.setDefaults(bundled);
+        config.set("debugMode", true);
+        assertFalse(config.isSet("usage-reporting"), "the on-disk file itself must lack the block for this test to mean anything");
+
+        assertTrue(configService.copyBundledUsageReportingBlockIfAbsent());
+
+        // In the file itself now (read without falling through to the defaults),
+        // with the jar's values; everything else untouched; and saved.
+        assertEquals(Boolean.TRUE, config.get("usage-reporting.enabled", null));
+        assertEquals("https://trace.danielstephenson.dev", config.get("usage-reporting.endpoint", null));
+        assertEquals("bundled-key", config.get("usage-reporting.key", null));
+        assertTrue(config.getBoolean("debugMode"));
+        verify(plugin).saveConfig();
+        assertFalse(configService.copyBundledUsageReportingBlockIfAbsent(), "a second pass has nothing to do");
+    }
+
+    @Test
+    void leavesAnOperatorsOwnUsageReportingBlockAlone() {
+        YamlConfiguration bundled = new YamlConfiguration();
+        bundled.set("usage-reporting.enabled", true);
+        bundled.set("usage-reporting.key", "bundled-key");
+        config.setDefaults(bundled);
+        config.set("usage-reporting.enabled", false);
+
+        assertFalse(configService.copyBundledUsageReportingBlockIfAbsent());
+
+        assertFalse(configService.isUsageReportingEnabled());
+        assertFalse(config.isSet("usage-reporting.key"), "an operator's block is not completed from the jar");
+        verify(plugin, never()).saveConfig();
+    }
+
+    @Test
+    void doesNothingWhenNoBundledBlockExistsEither() {
+        assertFalse(configService.copyBundledUsageReportingBlockIfAbsent());
+        verify(plugin, never()).saveConfig();
+    }
+
+    @Test
     void usageReportingIsOffWithNoKeyAnywhere() {
         assertEquals("", configService.getUsageReportingKey(), "no key anywhere must read as off, not as null");
         assertEquals("https://trace.danielstephenson.dev", configService.getUsageReportingEndpoint());
