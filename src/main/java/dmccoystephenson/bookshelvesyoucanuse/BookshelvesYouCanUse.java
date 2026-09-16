@@ -46,12 +46,16 @@ public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
         registerEventHandlers();
         initializeCommandService();
 
-        // usage reporting: one event now, one per command; see config.yml
+        // usage reporting: one event now, one per command; see config.yml. The
+        // server-wide switch, plugins/trace/config.yml, is created by the client
+        // if it is missing and honoured if it says enabled: false.
         trace = TraceClient.builder(configService.getUsageReportingEndpoint(), getName())
                 .key(configService.getUsageReportingKey())
                 .enabled(configService.isUsageReportingEnabled())
+                .serverWideConfig(getDataFolder().getParentFile())
                 .logger(getLogger())
                 .build();
+        getLogger().info(usageReportingNotice(getName(), trace.disabledReason()));
         trace.report("startup", null, Collections.singletonMap("version", getDescription().getVersion()));
 
         System.out.println("BYCU has enabled.");
@@ -139,6 +143,28 @@ public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
             saveDefaultConfig();
             configService.saveMissingConfigDefaultsIfNotPresent();
         }
+        // An existing file from before usage reporting only gets the block written
+        // by the version-mismatch path above; this covers a file that still lacks
+        // it, so the switch is visible on disk before the first report is sent.
+        configService.copyBundledUsageReportingBlockIfAbsent();
+    }
+
+    /**
+     * The one console line, every startup, that says whether usage reporting is
+     * on, what is sent, and how to turn it off.
+     *
+     * @param pluginName the name this plugin reports as
+     * @param disabledReason {@link TraceClient#disabledReason()}: null when reporting is on
+     */
+    static String usageReportingNotice(String pluginName, String disabledReason) {
+        if (disabledReason != null) {
+            return "Usage reporting is off (" + disabledReason + ").";
+        }
+        return "Usage reporting is on: " + pluginName + " sends its name, version and command names to "
+                + "https://trace.danielstephenson.dev - nothing about players or the server. "
+                + "Turn it off with usage-reporting.enabled: false in this plugin's config.yml, "
+                + "or for every plugin with enabled: false in plugins/trace/config.yml. "
+                + "Details: https://github.com/Stephenson-Software/trace#usage-reporting";
     }
 
     /**

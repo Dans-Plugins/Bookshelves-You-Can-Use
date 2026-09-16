@@ -5,8 +5,11 @@ package dmccoystephenson.bookshelvesyoucanuse.services;
     - saveMissingConfigDefaultsIfNotPresent()
  */
 
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import dmccoystephenson.bookshelvesyoucanuse.BookshelvesYouCanUse;
+
+import java.util.Arrays;
 
 /**
  * @author Daniel McCoy Stephenson
@@ -37,6 +40,31 @@ public class ConfigService {
 
         getConfig().options().copyDefaults(true);
         plugin.saveConfig();
+    }
+
+    /**
+     * Copies the bundled usage-reporting block into config.yml when the file on
+     * disk has none: a file from a version before usage reporting existed, on a
+     * server where the version-mismatch save has not run. Reporting was already
+     * active there through the one-argument getters below; this makes the switch
+     * visible in the file so it can be found and turned off. The values are the
+     * jar's defaults, not new literals.
+     *
+     * @return whether anything was copied (and the file saved)
+     */
+    public boolean copyBundledUsageReportingBlockIfAbsent() {
+        if (isSet("usage-reporting")) {
+            return false;
+        }
+        Configuration defaults = getConfig().getDefaults();
+        if (defaults == null || !defaults.isSet("usage-reporting")) {
+            return false;
+        }
+        for (String key : Arrays.asList(USAGE_REPORTING_ENABLED_KEY, USAGE_REPORTING_ENDPOINT_KEY, USAGE_REPORTING_KEY_KEY)) {
+            getConfig().set(key, defaults.get(key));
+        }
+        plugin.saveConfig();
+        return true;
     }
 
     public FileConfiguration getConfig() {
