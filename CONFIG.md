@@ -5,18 +5,18 @@ This document explains every option in the plugin's `config.yml`.
 ## version
 
 **Type:** string
-**Default:** Current plugin version (e.g. `v0.1.0-SNAPSHOT-8-8-2026`)
+**Default:** Current plugin version, prefixed with `v` (e.g. `v0.1.1-SNAPSHOT`)
 **Description:** The version of the plugin that last saved the configuration. This is managed automatically and should not be changed manually.
 
 ```yaml
-version: v0.1.0-SNAPSHOT-8-8-2026
+version: v0.1.1-SNAPSHOT
 ```
 
 ## debugMode
 
 **Type:** boolean
 **Default:** `false`
-**Description:** Enables or disables debug mode. When enabled, additional debug information may be logged to the server console.
+**Description:** Reserved for debug output. The option is written to `config.yml` and can be read by the plugin, but no code currently acts on it, so changing it has no effect.
 
 ```yaml
 debugMode: false

@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Left-clicking a bookshelf no longer opens its inventory. Only right-clicks do, so bookshelves can be broken normally again — previously the inventory re-opened on every punch, which interrupted block breaking.
 - A right-click that opens a bookshelf is now cancelled, so a held block is no longer placed against the bookshelf while its inventory opens.
 - The plugin's config file is now located through Bukkit's data folder rather than a hardcoded `./plugins/<name>/config.yml` path. On a server whose working directory or plugins directory differs from the assumed layout, the file was reported as missing and the config defaults were rewritten on every startup instead of the compatibility checks running.
+- `CONFIG.md` no longer says `debugMode` logs extra information (nothing reads the option, so it has no effect), and its `version` example matches the current `v`-prefixed plugin version. `CONTRIBUTING.md` now says `mvn clean package` runs the unit tests under `src/test/java/`.
 - `.gitignore` now ignores `*.iml` rather than the `ExamplePonderPlugin.iml` template leftover, so an IntelliJ module file generated for this project is no longer committable by accident.
 
 ## [0.1.0-SNAPSHOT-8-8-2026] – 2026-08-08
