@@ -55,6 +55,8 @@ Run the build with:
 mvn clean package
 ```
 
+This also runs the unit tests under `src/test/java/`. Add or update tests there alongside any change to the code they cover.
+
 For manual testing, start a local Spigot server and place the built JAR from `target/` into the server's `plugins/` folder.
 
 ## Questions
