@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- The vendored trace client is now 0.3.0. `plugins/trace/config.yml` can now carry a `tags:` block whose entries are added to every usage event reported by the plugins on that server, with an event's own tag winning on a key clash; release test servers write `ci: "true"` there so their boots are left out of real-installation figures. A server without a `tags:` block reports exactly as before. Details: https://github.com/Stephenson-Software/trace-client-java/releases/tag/0.3.0.
+
 ### Fixed
 
 - `CONFIG.md` no longer says `debugMode` logs extra information (nothing reads the option, so it has no effect), and its `version` example matches the current `v`-prefixed plugin version. `CONTRIBUTING.md` now says `mvn clean package` runs the unit tests under `src/test/java/`.
