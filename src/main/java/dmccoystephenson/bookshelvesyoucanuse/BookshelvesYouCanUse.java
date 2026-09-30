@@ -49,14 +49,14 @@ public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
         // usage reporting: one event now, one per command; see config.yml. The
         // server-wide switch, plugins/trace/config.yml, is created by the client
         // if it is missing and honoured if it says enabled: false.
-        trace = TraceClient.builder(configService.getUsageReportingEndpoint(), getName())
+        trace = TraceClient.builder(configService.getUsageReportingEndpoint(), getName(), getDescription().getVersion())
                 .key(configService.getUsageReportingKey())
                 .enabled(configService.isUsageReportingEnabled())
                 .serverWideConfig(getDataFolder().getParentFile())
                 .logger(getLogger())
                 .build();
         getLogger().info(usageReportingNotice(getName(), trace.disabledReason()));
-        trace.report("startup", null, Collections.singletonMap("version", getDescription().getVersion()));
+        trace.report("startup");
 
         System.out.println("BYCU has enabled.");
     }
