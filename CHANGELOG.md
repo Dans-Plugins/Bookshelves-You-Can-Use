@@ -9,10 +9,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - The vendored trace client is now 0.3.0. `plugins/trace/config.yml` can now carry a `tags:` block whose entries are added to every usage event reported by the plugins on that server, with an event's own tag winning on a key clash; release test servers write `ci: "true"` there so their boots are left out of real-installation figures. A server without a `tags:` block reports exactly as before. Details: https://github.com/Stephenson-Software/trace-client-java/releases/tag/0.3.0.
+- The vendored trace client is now 0.4.0, which adds the plugin version as the `version` tag on every usage event, so `command` events now carry it as well as `startup` ones. Nothing else about what is sent has changed.
 
 ### Fixed
 
 - `CONFIG.md` no longer says `debugMode` logs extra information (nothing reads the option, so it has no effect), and its `version` example matches the current `v`-prefixed plugin version. `CONTRIBUTING.md` now says `mvn clean package` runs the unit tests under `src/test/java/`.
+- `USER_GUIDE.md`'s prerequisites no longer say the plugin runs on Spigot 1.13 or later. They now name the supported versions in `minecraft-versions.json`, as the README does, and say the Java runtime is whatever that Minecraft version requires.
 - `CHANGELOG.md` now has a `0.1.0` section. The release was tagged `v0.1.0`, but everything it shipped was still listed under `Unreleased`.
 
 ## [0.1.0] – 2026-09-22

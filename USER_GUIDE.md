@@ -2,8 +2,8 @@
 
 ## Prerequisites
 
-- A Minecraft server running Spigot (or a Spigot-compatible fork) version 1.13 or later.
-- A Java runtime (JRE or JDK) version 9 or later on the server (the plugin is compiled for Java 9 bytecode).
+- A Minecraft server running Spigot (or a Spigot-compatible fork) on one of the versions listed in [`minecraft-versions.json`](minecraft-versions.json): currently 1.19.4, 1.21.11 and 26.2. Other versions from 1.19.4 onwards are expected to work but are not tested (see the README's [Supported Minecraft Versions](README.md#supported-minecraft-versions)).
+- The Java runtime that your Minecraft version requires. The plugin is compiled for Java 9 bytecode, so it adds no Java requirement of its own.
 - The [Ponder](https://github.com/Preponderous-Software/Ponder) library (already bundled inside the plugin JAR; no separate installation required).
 
 ## First Steps
