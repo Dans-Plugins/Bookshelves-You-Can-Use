@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `CONFIG.md` no longer says `debugMode` logs extra information (nothing reads the option, so it has no effect), and its `version` example matches the current `v`-prefixed plugin version. `CONTRIBUTING.md` now says `mvn clean package` runs the unit tests under `src/test/java/`.
 - `USER_GUIDE.md`'s prerequisites no longer say the plugin runs on Spigot 1.13 or later. They now name the supported versions in `minecraft-versions.json`, as the README does, and say the Java runtime is whatever that Minecraft version requires.
+- `USER_GUIDE.md` no longer says the interact cooldown only blocks opening *another* bookshelf: it blocks opening any bookshelf, the same one included, and the guide now says a right-click during the cooldown is left to vanilla. Its notes also now say that breaking a bookshelf does not drop the items stored in it, which stay at that position for a bookshelf placed there later.
 - `CHANGELOG.md` now has a `0.1.0` section. The release was tagged `v0.1.0`, but everything it shipped was still listed under `Unreleased`.
 
 ## [0.1.0] – 2026-09-22

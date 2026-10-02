@@ -30,7 +30,7 @@
 
 ### Interact Cooldown
 
-After interacting with a bookshelf, there is a 2-second cooldown before you can interact with another bookshelf. This prevents accidental double-opens.
+After opening a bookshelf, there is a 2-second cooldown before you can open a bookshelf again — the same one or any other. This prevents accidental double-opens. A right-click during the cooldown does not open anything and is not cancelled, so it behaves as it would without the plugin (a held block can be placed against the bookshelf).
 
 ## Permissions
 
@@ -42,5 +42,6 @@ After interacting with a bookshelf, there is a 2-second cooldown before you can 
 
 - Bookshelf inventories are stored in memory and are **not** persisted across server restarts.
 - Each bookshelf block in the world has its own independent inventory.
+- An inventory belongs to the block position, not the block. Breaking a bookshelf does **not** drop the items stored in it; they stay at that position, and a bookshelf placed there later opens with them.
 - Only right-clicks open a bookshelf. Left-clicking is left alone, so bookshelves are broken the usual way.
 - A right-click that opens a bookshelf is cancelled, so a held block is not placed against the bookshelf at the same time.
