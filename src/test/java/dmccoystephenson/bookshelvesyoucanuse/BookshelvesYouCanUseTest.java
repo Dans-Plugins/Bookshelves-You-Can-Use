@@ -68,6 +68,7 @@ class BookshelvesYouCanUseTest {
         String on = BookshelvesYouCanUse.usageReportingNotice("BookshelvesYouCanUse", null);
 
         assertTrue(on.startsWith("Usage reporting is on: BookshelvesYouCanUse sends its name, version and command names to https://trace.danielstephenson.dev"), on);
+        assertTrue(on.contains(", plus a random server ID (server-id in plugins/trace/config.yml) - nothing about players."), on);
         assertTrue(on.contains("usage-reporting.enabled: false"), on);
         assertTrue(on.contains("plugins/trace/config.yml"), on);
         assertTrue(on.endsWith("Details: https://github.com/Stephenson-Software/trace#usage-reporting"), on);
