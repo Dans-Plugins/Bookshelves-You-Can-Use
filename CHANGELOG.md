@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `CHANGELOG.md` now has a `0.2.0` section. The release was tagged `v0.2.0`, but everything it shipped was still listed under `Unreleased`.
+- `USER_GUIDE.md`'s prerequisites now list Minecraft 26.3 among the supported versions, matching `minecraft-versions.json` and the README.
+- `CONFIG.md`'s `version` example now shows the current plugin version.
+
+## [0.2.0] – 2026-10-06
+
 ### Changed
 
 - The vendored trace client is now 0.3.0. `plugins/trace/config.yml` can now carry a `tags:` block whose entries are added to every usage event reported by the plugins on that server, with an event's own tag winning on a key clash; release test servers write `ci: "true"` there so their boots are left out of real-installation figures. A server without a `tags:` block reports exactly as before. Details: https://github.com/Stephenson-Software/trace-client-java/releases/tag/0.3.0.
