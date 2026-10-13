@@ -5,8 +5,11 @@ import dmccoystephenson.bookshelvesyoucanuse.objects.BookshelfInventory;
 import dmccoystephenson.bookshelvesyoucanuse.services.ConfigService;
 import dmccoystephenson.bookshelvesyoucanuse.trace.TraceClient;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.junit.jupiter.api.AfterEach;
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
+import preponderous.ponder.minecraft.bukkit.services.CommandService;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +25,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -33,6 +38,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -56,6 +65,7 @@ class BookshelvesYouCanUseTest {
         doCallRealMethod().when(plugin).getBookshelfInventory(any());
         doCallRealMethod().when(plugin).isVersionMismatched();
         doCallRealMethod().when(plugin).isDebugEnabled();
+        doCallRealMethod().when(plugin).onCommand(any(), any(), any(), any());
     }
 
     @AfterEach
@@ -220,6 +230,57 @@ class BookshelvesYouCanUseTest {
         assertFalse(plugin.isDebugEnabled());
     }
 
+    @Test
+    void aCommandWithNoArgumentsShowsThePluginInformationWithoutConsultingTheCommandService() {
+        CommandService commandService = mock(CommandService.class);
+        plantOnPluginMock("commandService", commandService);
+        plantOnPluginMock("trace", mock(TraceClient.class));
+        when(plugin.getVersion()).thenReturn("v0.2.1-SNAPSHOT");
+        CommandSender sender = mock(CommandSender.class);
+
+        assertTrue(plugin.onCommand(sender, command("bycu"), "bycu", new String[0]));
+
+        verify(sender).sendMessage(ChatColor.AQUA + "BookshelvesYouCanUse v0.2.1-SNAPSHOT");
+        verifyNoInteractions(commandService);
+    }
+
+    @Test
+    void aCommandWithArgumentsIsHandedToTheCommandServiceAndReturnsItsResult() {
+        CommandService commandService = mock(CommandService.class);
+        plantOnPluginMock("commandService", commandService);
+        plantOnPluginMock("trace", mock(TraceClient.class));
+        CommandSender sender = mock(CommandSender.class);
+        String[] args = {"help"};
+        when(commandService.interpretAndExecuteCommand(sender, "bycu", args)).thenReturn(true, false);
+
+        assertTrue(plugin.onCommand(sender, command("bycu"), "bycu", args));
+        assertFalse(plugin.onCommand(sender, command("bycu"), "bycu", args));
+    }
+
+    /**
+     * The report carries the command's name and nothing else the sender typed, which is what the
+     * README promises ("nothing typed after a command"), and it is sent for the no-argument command too.
+     */
+    @Test
+    void everyCommandReportsOnlyTheCommandNameNotTheLabelOrArguments() {
+        plantOnPluginMock("commandService", mock(CommandService.class));
+        TraceClient trace = mock(TraceClient.class);
+        plantOnPluginMock("trace", trace);
+        CommandSender sender = mock(CommandSender.class);
+
+        plugin.onCommand(sender, command("bookshelvesyoucanuse"), "bycu", new String[]{"help", "secret"});
+        plugin.onCommand(sender, command("bookshelvesyoucanuse"), "bycu", new String[0]);
+
+        verify(trace, times(2)).report("command", null, Collections.singletonMap("name", "bookshelvesyoucanuse"));
+        verifyNoMoreInteractions(trace);
+    }
+
+    private Command command(String name) {
+        Command command = mock(Command.class);
+        when(command.getName()).thenReturn(name);
+        return command;
+    }
+
     private void givenConfigVersion(String version) {
         FileConfiguration config = mock(FileConfiguration.class);
         when(config.getString("version")).thenReturn(version);
@@ -231,7 +292,7 @@ class BookshelvesYouCanUseTest {
     }
 
     /**
-     * getBookshelfInventory and isDebugEnabled read their collaborators from fields directly rather
+     * getBookshelfInventory, isDebugEnabled and onCommand read their collaborators from fields directly rather
      * than through a getter, and Mockito builds the plugin mock without running field initializers,
      * so those fields have to be planted on the mock for the real methods to run against them.
      */
