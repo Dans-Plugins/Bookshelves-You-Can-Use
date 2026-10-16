@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- `CHANGELOG.md` now has a `0.2.1` section. The release was tagged `v0.2.1`, but everything it shipped was still listed under `Unreleased`.
+- `CONFIG.md`'s `version` example now shows the current plugin version again.
+
+## [0.2.1] – 2026-10-15
+
+### Fixed
+
 - `CHANGELOG.md` now has a `0.2.0` section. The release was tagged `v0.2.0`, but everything it shipped was still listed under `Unreleased`.
 - `USER_GUIDE.md`'s prerequisites now list Minecraft 26.3 among the supported versions, matching `minecraft-versions.json` and the README.
 - `CONFIG.md`'s `version` example now shows the current plugin version.
