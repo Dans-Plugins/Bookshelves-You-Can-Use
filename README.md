@@ -65,7 +65,7 @@ Windows:
 
     mvn clean package
 
-If you see `BUILD SUCCESS`, the build has passed.
+This also runs the unit tests under `src/test/java/`. If you see `BUILD SUCCESS`, the build and the tests have passed.
 
 ## Development
 
