@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `CHANGELOG.md` now has a `0.2.1` section. The release was tagged `v0.2.1`, but everything it shipped was still listed under `Unreleased`.
 - `CONFIG.md`'s `version` example now shows the current plugin version again.
+- The comment above `usage-reporting` in the bundled `config.yml` now says that a `command` event also carries the command's name, as the README and `CONFIG.md` already did. A `config.yml` already on disk is not rewritten, so only new installations get the corrected comment.
+- The README's build instructions now say that `mvn clean package` also runs the unit tests, as `CONTRIBUTING.md` already did.
 
 ## [0.2.1] – 2026-10-15
 
