@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -168,6 +169,58 @@ class InteractHandlerTest {
         verify(player).openInventory(inventoryCaptor.capture());
         assertSame(existingInventory.getInventory(), inventoryCaptor.getValue());
         assertTrue(bookshelfInventories.isEmpty());
+    }
+
+    @Test
+    void aRightClickOnAnotherBookshelfWhileOnCooldownIsIgnoredToo() {
+        interactHandler.handle(interactEvent(Action.RIGHT_CLICK_BLOCK, bookshelf));
+        PlayerInteractEvent otherBookshelfEvent = interactEvent(Action.RIGHT_CLICK_BLOCK, blockOfType(Material.BOOKSHELF));
+
+        interactHandler.handle(otherBookshelfEvent);
+
+        verify(player).openInventory(any(Inventory.class));
+        assertFalse(otherBookshelfEvent.isCancelled());
+        assertEquals(1, bookshelfInventories.size());
+    }
+
+    @Test
+    void anotherPlayerCanOpenABookshelfWhileTheFirstIsOnCooldown() {
+        interactHandler.handle(interactEvent(Action.RIGHT_CLICK_BLOCK, bookshelf));
+        Player otherPlayer = mock(Player.class);
+        when(otherPlayer.getUniqueId()).thenReturn(UUID.randomUUID());
+        PlayerInteractEvent otherPlayersEvent = new PlayerInteractEvent(otherPlayer, Action.RIGHT_CLICK_BLOCK, null, bookshelf, BlockFace.NORTH);
+
+        interactHandler.handle(otherPlayersEvent);
+
+        verify(otherPlayer).openInventory(any(Inventory.class));
+        assertTrue(otherPlayersEvent.isCancelled());
+        assertTrue(temporaryData.isPlayerOnCooldown(otherPlayer));
+    }
+
+    @Test
+    void rightClickingANonBookshelfBlockDoesNotStartTheCooldown() {
+        interactHandler.handle(interactEvent(Action.RIGHT_CLICK_BLOCK, blockOfType(Material.STONE)));
+
+        assertFalse(temporaryData.isPlayerOnCooldown(player));
+        verify(scheduler, never()).runTaskLater(any(), any(Runnable.class), anyLong());
+    }
+
+    @Test
+    void aNewBookshelfInventoryIsCreatedAtTheClickedBlocksPosition() {
+        Block placedBookshelf = blockOfType(Material.BOOKSHELF);
+        Location location = placedBookshelf.getLocation();
+        when(location.getBlockX()).thenReturn(12);
+        when(location.getBlockY()).thenReturn(-34);
+        when(location.getBlockZ()).thenReturn(56);
+        when(location.getWorld().getName()).thenReturn("world_nether");
+
+        interactHandler.handle(interactEvent(Action.RIGHT_CLICK_BLOCK, placedBookshelf));
+
+        BookshelfInventory created = bookshelfInventories.get(0);
+        assertEquals(12, created.getX());
+        assertEquals(-34, created.getY());
+        assertEquals(56, created.getZ());
+        assertEquals("world_nether", created.getWorldName());
     }
 
     private PlayerInteractEvent interactEvent(Action action, Block block) {
