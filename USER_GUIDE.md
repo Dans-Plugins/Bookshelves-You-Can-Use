@@ -20,7 +20,7 @@
 2. Right-click the bookshelf.
 3. A 9-slot inventory will open with the title "Bookshelf".
 4. Place items into the inventory.
-5. Close the inventory. Your items will remain in the bookshelf until the server restarts.
+5. Close the inventory. Your items will remain in the bookshelf until the server restarts or the plugin is reloaded.
 
 ### Retrieving Items from a Bookshelf
 
@@ -40,7 +40,7 @@ After opening a bookshelf, there is a 2-second cooldown before you can open a bo
 
 ## Notes
 
-- Bookshelf inventories are stored in memory and are **not** persisted across server restarts.
+- Bookshelf inventories are stored in memory and are **not** persisted across server restarts. They are also lost whenever the plugin is disabled and enabled again without a restart (for example by `/reload` or a plugin manager), because nothing saves them when the plugin is disabled.
 - Each bookshelf block in the world has its own independent inventory.
 - An inventory belongs to the block position, not the block. Breaking a bookshelf does **not** drop the items stored in it; they stay at that position, and a bookshelf placed there later opens with them.
 - Only right-clicks open a bookshelf. Left-clicking is left alone, so bookshelves are broken the usual way.
