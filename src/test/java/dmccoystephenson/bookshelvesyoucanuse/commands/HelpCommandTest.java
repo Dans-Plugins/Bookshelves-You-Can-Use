@@ -45,4 +45,22 @@ class HelpCommandTest {
         assertEquals(ChatColor.AQUA + "/bycu", messages.get(0));
         assertEquals(ChatColor.AQUA + "/bycu help", messages.get(1));
     }
+
+    /**
+     * The overload that takes arguments ignores them and lists the same commands.
+     */
+    @Test
+    void executeWithArgumentsIgnoresThemAndSendsEveryDocumentedCommand() {
+        HelpCommand helpCommand = new HelpCommand();
+        CommandSender commandSender = mock(CommandSender.class);
+
+        boolean result = helpCommand.execute(commandSender, new String[]{"unexpected", "words"});
+
+        assertTrue(result);
+        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
+        verify(commandSender, times(2)).sendMessage(messageCaptor.capture());
+        List<String> messages = messageCaptor.getAllValues();
+        assertEquals(ChatColor.AQUA + "/bycu", messages.get(0));
+        assertEquals(ChatColor.AQUA + "/bycu help", messages.get(1));
+    }
 }
