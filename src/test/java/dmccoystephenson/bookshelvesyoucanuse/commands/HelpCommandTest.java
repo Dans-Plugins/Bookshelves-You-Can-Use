@@ -47,8 +47,7 @@ class HelpCommandTest {
     }
 
     /**
-     * Words typed after {@code /bycu help} reach the overload that takes arguments, which ignores
-     * them and lists the same commands.
+     * The overload that takes arguments ignores them and lists the same commands.
      */
     @Test
     void executeWithArgumentsIgnoresThemAndSendsEveryDocumentedCommand() {
