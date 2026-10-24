@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - The comment above `usage-reporting` in the bundled `config.yml` now says that a `command` event also carries the command's name, as the README and `CONFIG.md` already did. A `config.yml` already on disk is not rewritten, so only new installations get the corrected comment.
 - The README's build instructions now say that `mvn clean package` also runs the unit tests, as `CONTRIBUTING.md` already did.
 - `USER_GUIDE.md` now says that stored bookshelf items are also lost when the plugin is reloaded (for example by `/reload`), not only when the server restarts. Nothing saves them when the plugin is disabled.
+- `USER_GUIDE.md` now says that opening a bookshelf also prints "You rummage through the bookshelf." in chat, as the plugin always has.
 
 ## [0.2.1] – 2026-10-15
 

@@ -18,7 +18,7 @@
 
 1. Walk up to a bookshelf block in the world.
 2. Right-click the bookshelf.
-3. A 9-slot inventory will open with the title "Bookshelf".
+3. The chat message "You rummage through the bookshelf." appears, and a 9-slot inventory will open with the title "Bookshelf".
 4. Place items into the inventory.
 5. Close the inventory. Your items will remain in the bookshelf until the server restarts or the plugin is reloaded.
 
