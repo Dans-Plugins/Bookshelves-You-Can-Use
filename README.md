@@ -41,6 +41,10 @@ Each event also carries a random server ID (the `server-id` line in `plugins/tra
 servers can be counted rather than events. It identifies no person, account or IP address; delete
 the line to get a new one.
 
+Repeated uses of the same command within a minute are counted rather than sent one by one: the
+first is sent at once, and the rest follow as a single event carrying the count (tag `coalesced`)
+when the minute ends or the plugin is disabled. `startup` is always sent at once.
+
 To turn it off:
 
 - for this plugin only: `usage-reporting.enabled: false` in `plugins/BookshelvesYouCanUse/config.yml`
