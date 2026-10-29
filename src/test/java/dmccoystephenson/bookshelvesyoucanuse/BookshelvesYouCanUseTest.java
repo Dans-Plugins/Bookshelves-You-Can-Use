@@ -11,6 +11,7 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -266,13 +267,28 @@ class BookshelvesYouCanUseTest {
         plantOnPluginMock("commandService", mock(CommandService.class));
         TraceClient trace = mock(TraceClient.class);
         plantOnPluginMock("trace", trace);
-        CommandSender sender = mock(CommandSender.class);
+        Player sender = mock(Player.class);
 
         plugin.onCommand(sender, command("bookshelvesyoucanuse"), "bycu", new String[]{"help", "secret"});
         plugin.onCommand(sender, command("bookshelvesyoucanuse"), "bycu", new String[0]);
 
         verify(trace, times(2)).report("command", null, Collections.singletonMap("name", "bookshelvesyoucanuse"));
         verifyNoMoreInteractions(trace);
+    }
+
+    /**
+     * Only commands a player runs are reported: console, command-block and plugin-dispatched commands are not.
+     */
+    @Test
+    void aCommandNotRunByAPlayerIsNotReported() {
+        plantOnPluginMock("commandService", mock(CommandService.class));
+        TraceClient trace = mock(TraceClient.class);
+        plantOnPluginMock("trace", trace);
+        CommandSender console = mock(CommandSender.class);
+
+        plugin.onCommand(console, command("bookshelvesyoucanuse"), "bycu", new String[]{"help"});
+
+        verifyNoInteractions(trace);
     }
 
     private Command command(String name) {
