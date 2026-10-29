@@ -6,9 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `CHANGELOG.md` now has `0.2.2` and `0.3.0` sections. Both releases were tagged (`v0.2.2`, `v0.3.0`), but everything they shipped was still listed under `Unreleased`.
+- `CONFIG.md`'s `version` example now shows the current plugin version again.
+
+## [0.3.0] – 2026-10-29
+
 ### Changed
 
 - The vendored trace client is now 0.7.0, which coalesces repeated usage events. The first use of a command is still reported at once, but further uses of the same command within the next minute are counted and sent as one event, tagged `coalesced` with how many there were, when that minute ends; anything still being counted is sent when the plugin is disabled. `startup` is never held back. What an event carries is otherwise unchanged. `CONFIG.md` and the README now say so. Details: https://github.com/Stephenson-Software/trace-client-java/releases/tag/0.7.0.
+
+## [0.2.2] – 2026-10-25
 
 ### Fixed
 
