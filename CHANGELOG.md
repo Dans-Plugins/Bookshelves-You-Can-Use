@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Usage reporting now counts a `command` event only when a player runs the command; console, command-block and plugin-dispatched commands are no longer reported.
+
 ### Fixed
 
 - `CHANGELOG.md` now has `0.2.2` and `0.3.0` sections. Both releases were tagged (`v0.2.2`, `v0.3.0`), but everything they shipped was still listed under `Unreleased`.
