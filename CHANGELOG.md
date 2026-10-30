@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `CHANGELOG.md` now has a `0.3.1` section. The release was tagged `v0.3.1`, but everything it shipped was still listed under `Unreleased`.
+- `CONFIG.md`'s `version` example now shows the current plugin version again.
+- The README, `CONFIG.md` and the comment above `usage-reporting` in the bundled `config.yml` now say that a `command` event is sent only when a player runs one of the plugin's commands, as the code has done since 0.3.1. They still said every use of a command was reported. A `config.yml` already on disk is not rewritten, so only new installations get the corrected comment.
+
+## [0.3.1] – 2026-10-30
+
 ### Changed
 
 - Usage reporting now counts a `command` event only when a player runs the command; console, command-block and plugin-dispatched commands are no longer reported.

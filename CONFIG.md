@@ -5,11 +5,11 @@ This document explains every option in the plugin's `config.yml`.
 ## version
 
 **Type:** string
-**Default:** Current plugin version, prefixed with `v` (e.g. `v0.3.1-SNAPSHOT`)
+**Default:** Current plugin version, prefixed with `v` (e.g. `v0.3.2-SNAPSHOT`)
 **Description:** The version of the plugin that last saved the configuration. This is managed automatically and should not be changed manually.
 
 ```yaml
-version: v0.3.1-SNAPSHOT
+version: v0.3.2-SNAPSHOT
 ```
 
 ## debugMode
@@ -26,7 +26,7 @@ debugMode: false
 
 **Type:** section
 **Default:** see below
-**Description:** When the plugin is enabled, and each time one of its commands is used, a small event is sent to the author's [trace](https://github.com/Stephenson-Software/trace-client-java) server so it is known which plugins are actually in use. An event carries the plugin's name, the event name (`startup` or `command`), the plugin version, and for a command the command name, plus a random server ID (the `server-id` line in `plugins/trace/config.yml`, which identifies no person, account or IP address; deleting the line gets a new one) — nothing about players or the world. Repeated uses of the same command within a minute are not sent one by one: the first is sent at once, and the rest are counted and sent as one event, tagged `coalesced` with the count, when the minute ends (or when the plugin is disabled). `startup` is always sent at once. Sending happens off the main thread, never delays a tick, and is dropped silently if the server cannot be reached. Set `usage-reporting.enabled` to `false` to turn it off, or turn it off for every plugin on the server at once with `enabled: false` in `plugins/trace/config.yml` (created on first start) or the environment variable `TRACE_USAGE_REPORTING=off` / `DO_NOT_TRACK=1`. The plugin says on every startup whether reporting is on. Details: https://github.com/Stephenson-Software/trace#usage-reporting
+**Description:** When the plugin is enabled, and each time a player runs one of its commands, a small event is sent to the author's [trace](https://github.com/Stephenson-Software/trace-client-java) server so it is known which plugins are actually in use. An event carries the plugin's name, the event name (`startup` or `command`), the plugin version, and for a command the command name, plus a random server ID (the `server-id` line in `plugins/trace/config.yml`, which identifies no person, account or IP address; deleting the line gets a new one) — nothing about players or the world. Repeated uses of the same command within a minute are not sent one by one: the first is sent at once, and the rest are counted and sent as one event, tagged `coalesced` with the count, when the minute ends (or when the plugin is disabled). `startup` is always sent at once. Sending happens off the main thread, never delays a tick, and is dropped silently if the server cannot be reached. Set `usage-reporting.enabled` to `false` to turn it off, or turn it off for every plugin on the server at once with `enabled: false` in `plugins/trace/config.yml` (created on first start) or the environment variable `TRACE_USAGE_REPORTING=off` / `DO_NOT_TRACK=1`. The plugin says on every startup whether reporting is on. Details: https://github.com/Stephenson-Software/trace#usage-reporting
 
 A `config.yml` written by a version before this block existed gets the three keys written into it, with the bundled defaults, on the next startup, so the switch is visible where an operator would look for it (on Bukkit older than 1.18.1 that first save drops the file's comments). Until then the plugin reads the bundled defaults for any key the file lacks, so reporting is active on upgraded servers too unless turned off.
 
