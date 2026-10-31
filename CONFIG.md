@@ -5,11 +5,11 @@ This document explains every option in the plugin's `config.yml`.
 ## version
 
 **Type:** string
-**Default:** Current plugin version, prefixed with `v` (e.g. `v0.3.2-SNAPSHOT`)
+**Default:** Current plugin version, prefixed with `v` (e.g. `v0.3.3-SNAPSHOT`)
 **Description:** The version of the plugin that last saved the configuration. This is managed automatically and should not be changed manually.
 
 ```yaml
-version: v0.3.2-SNAPSHOT
+version: v0.3.3-SNAPSHOT
 ```
 
 ## debugMode
