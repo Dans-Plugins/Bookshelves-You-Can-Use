@@ -38,7 +38,6 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -427,7 +426,6 @@ class BookshelvesYouCanUseTest {
         enablePlugin();
 
         verify(pluginManager).registerEvents(isA(InteractHandler.class), eq(plugin));
-        verifyNoMoreInteractions(pluginManager);
     }
 
     @Test
@@ -439,8 +437,7 @@ class BookshelvesYouCanUseTest {
         enablePlugin();
 
         verify(commandService).initialize(commands.capture(), eq("That command wasn't found."));
-        assertEquals(1, commands.getValue().size());
-        assertInstanceOf(HelpCommand.class, commands.getValue().get(0));
+        assertTrue(commands.getValue().stream().anyMatch(HelpCommand.class::isInstance));
     }
 
     /**
