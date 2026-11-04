@@ -1,5 +1,7 @@
 package dmccoystephenson.bookshelvesyoucanuse;
 
+import dmccoystephenson.bookshelvesyoucanuse.commands.HelpCommand;
+import dmccoystephenson.bookshelvesyoucanuse.eventhandlers.InteractHandler;
 import dmccoystephenson.bookshelvesyoucanuse.exceptions.BookshelfInventoryNotFoundException;
 import dmccoystephenson.bookshelvesyoucanuse.objects.BookshelfInventory;
 import dmccoystephenson.bookshelvesyoucanuse.services.ConfigService;
@@ -13,11 +15,16 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.MockedStatic;
+import preponderous.ponder.minecraft.bukkit.abs.AbstractPluginCommand;
 import preponderous.ponder.minecraft.bukkit.services.CommandService;
 
 import java.io.File;
@@ -27,6 +34,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -36,9 +44,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.RETURNS_SELF;
 import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -50,8 +63,20 @@ import static org.mockito.Mockito.when;
  * @since August 28th, 2022
  */
 class BookshelvesYouCanUseTest {
+    private static final String ENDPOINT = "https://trace.example.test";
+    private static final String KEY = "the-configured-key";
+    private static final String PLUGIN_VERSION = "0.3.3-SNAPSHOT";
+
     private MockedStatic<Bukkit> bukkit;
     private BookshelvesYouCanUse plugin;
+
+    // The collaborators of onEnable and onDisable, set up by givenAPluginReadyToEnable.
+    private ConfigService configService;
+    private CommandService commandService;
+    private PluginManager pluginManager;
+    private Logger logger;
+    private TraceClient trace;
+    private TraceClient.Builder traceBuilder;
 
     @BeforeEach
     void setUp() throws BookshelfInventoryNotFoundException {
@@ -67,6 +92,8 @@ class BookshelvesYouCanUseTest {
         doCallRealMethod().when(plugin).isVersionMismatched();
         doCallRealMethod().when(plugin).isDebugEnabled();
         doCallRealMethod().when(plugin).onCommand(any(), any(), any(), any());
+        doCallRealMethod().when(plugin).onEnable();
+        doCallRealMethod().when(plugin).onDisable();
     }
 
     @AfterEach
@@ -291,6 +318,191 @@ class BookshelvesYouCanUseTest {
         verifyNoInteractions(trace);
     }
 
+    /**
+     * The jar's config.yml is copied first because it carries the comments: the programmatic options
+     * are then added to that file rather than the file being written without them.
+     */
+    @Test
+    void aFirstStartWritesTheBundledConfigAndThenAddsTheProgrammaticOptions(@TempDir Path pluginsFolder) {
+        givenAPluginReadyToEnable(pluginsFolder);
+
+        enablePlugin();
+
+        InOrder order = inOrder(plugin, configService);
+        order.verify(plugin).saveDefaultConfig();
+        order.verify(configService).saveMissingConfigDefaultsIfNotPresent();
+        order.verify(configService).copyBundledUsageReportingBlockIfAbsent();
+        verify(plugin, never()).reloadConfig();
+    }
+
+    /**
+     * The save has to come first: reloadConfig discards what is in memory, so the other order
+     * would lose the updated version and the added options.
+     */
+    @Test
+    void anExistingConfigFromAnotherVersionIsUpdatedAndThenReloaded(@TempDir Path pluginsFolder) throws IOException {
+        givenAPluginReadyToEnable(pluginsFolder);
+        givenAnExistingConfigFile();
+        givenConfigVersion("v0.0.1");
+
+        enablePlugin();
+
+        InOrder order = inOrder(plugin, configService);
+        order.verify(configService).saveMissingConfigDefaultsIfNotPresent();
+        order.verify(plugin).reloadConfig();
+        order.verify(configService).copyBundledUsageReportingBlockIfAbsent();
+        verify(plugin, never()).saveDefaultConfig();
+    }
+
+    @Test
+    void anExistingConfigFromThisVersionIsOnlyReloaded(@TempDir Path pluginsFolder) throws IOException {
+        givenAPluginReadyToEnable(pluginsFolder);
+        givenAnExistingConfigFile();
+        givenConfigVersion("v" + PLUGIN_VERSION);
+
+        enablePlugin();
+
+        InOrder order = inOrder(plugin, configService);
+        order.verify(plugin).reloadConfig();
+        order.verify(configService).copyBundledUsageReportingBlockIfAbsent();
+        verify(plugin, never()).saveDefaultConfig();
+        verify(configService, never()).saveMissingConfigDefaultsIfNotPresent();
+    }
+
+    /**
+     * This is the path an operator's opt-out takes: a false here that did not reach the client would
+     * leave reporting on for a server that had turned it off.
+     */
+    @Test
+    void theUsageReportingOptionsReachTheClient(@TempDir Path pluginsFolder) {
+        givenAPluginReadyToEnable(pluginsFolder);
+        when(configService.getUsageReportingKey()).thenReturn(KEY);
+        when(configService.isUsageReportingEnabled()).thenReturn(false);
+
+        enablePlugin();
+
+        verify(traceBuilder).key(KEY);
+        verify(traceBuilder).enabled(false);
+        verify(traceBuilder).serverWideConfig(pluginsFolder.toFile());
+        verify(traceBuilder).logger(logger);
+    }
+
+    /**
+     * The block has to be on disk before anything is sent, so that the switch can already be found
+     * in config.yml by the time the first report goes out.
+     */
+    @Test
+    void theUsageReportingBlockIsCopiedBeforeTheClientIsBuilt(@TempDir Path pluginsFolder) {
+        givenAPluginReadyToEnable(pluginsFolder);
+
+        enablePlugin();
+
+        InOrder order = inOrder(configService, traceBuilder, trace);
+        order.verify(configService).copyBundledUsageReportingBlockIfAbsent();
+        order.verify(traceBuilder).build();
+        order.verify(trace).report("startup");
+    }
+
+    @Test
+    void theStartupNoticeIsLoggedBeforeTheStartupEventIsSent(@TempDir Path pluginsFolder) {
+        givenAPluginReadyToEnable(pluginsFolder);
+        when(trace.disabledReason()).thenReturn(TraceClient.REASON_CONFIG);
+
+        enablePlugin();
+
+        InOrder order = inOrder(logger, trace);
+        order.verify(logger).info("Usage reporting is off (config.yml).");
+        order.verify(trace).report("startup");
+    }
+
+    /**
+     * Nothing else makes a bookshelf open: without this registration the plugin loads, reports no
+     * error, and bookshelves stay ordinary blocks.
+     */
+    @Test
+    void enablingRegistersTheInteractHandler(@TempDir Path pluginsFolder) {
+        givenAPluginReadyToEnable(pluginsFolder);
+
+        enablePlugin();
+
+        verify(pluginManager).registerEvents(isA(InteractHandler.class), eq(plugin));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void enablingHandsTheHelpCommandToTheCommandService(@TempDir Path pluginsFolder) {
+        givenAPluginReadyToEnable(pluginsFolder);
+        ArgumentCaptor<ArrayList<AbstractPluginCommand>> commands = ArgumentCaptor.forClass(ArrayList.class);
+
+        enablePlugin();
+
+        verify(commandService).initialize(commands.capture(), eq("That command wasn't found."));
+        assertTrue(commands.getValue().stream().anyMatch(HelpCommand.class::isInstance));
+    }
+
+    /**
+     * Commands and shutdown use the client onEnable built, not the no-op one the plugin starts with:
+     * close is what sends any repeated command uses still being counted.
+     */
+    @Test
+    void theClientBuiltOnEnableReportsCommandsAndIsClosedOnDisable(@TempDir Path pluginsFolder) {
+        givenAPluginReadyToEnable(pluginsFolder);
+        enablePlugin();
+
+        plugin.onCommand(mock(Player.class), command("bycu"), "bycu", new String[0]);
+        plugin.onDisable();
+
+        InOrder order = inOrder(trace);
+        order.verify(trace).report("command", null, Collections.singletonMap("name", "bycu"));
+        order.verify(trace).close();
+    }
+
+    /**
+     * The plugin mock runs the real onEnable, with a temporary folder standing in for the server's
+     * plugins folder. The folder holds no config.yml, so by default this is a first start.
+     */
+    private void givenAPluginReadyToEnable(Path pluginsFolder) {
+        File dataFolder = pluginsFolder.resolve("BookshelvesYouCanUse").toFile();
+        assertTrue(dataFolder.mkdir());
+        when(plugin.getDataFolder()).thenReturn(dataFolder);
+        when(plugin.getName()).thenReturn("BookshelvesYouCanUse");
+        when(plugin.getDescription()).thenReturn(new PluginDescriptionFile(
+                "BookshelvesYouCanUse", PLUGIN_VERSION, BookshelvesYouCanUse.class.getName()));
+        when(plugin.getVersion()).thenReturn("v" + PLUGIN_VERSION);
+
+        logger = mock(Logger.class);
+        when(plugin.getLogger()).thenReturn(logger);
+
+        // Ponder's EventHandlerRegistry reaches the plugin manager through Bukkit, not the plugin.
+        pluginManager = mock(PluginManager.class);
+        bukkit.when(Bukkit::getPluginManager).thenReturn(pluginManager);
+
+        configService = mock(ConfigService.class);
+        when(configService.getUsageReportingEndpoint()).thenReturn(ENDPOINT);
+        plantOnPluginMock("configService", configService);
+
+        commandService = mock(CommandService.class);
+        plantOnPluginMock("commandService", commandService);
+
+        trace = mock(TraceClient.class);
+        traceBuilder = mock(TraceClient.Builder.class, RETURNS_SELF);
+        when(traceBuilder.build()).thenReturn(trace);
+    }
+
+    private void givenAnExistingConfigFile() throws IOException {
+        assertTrue(new File(plugin.getDataFolder(), "config.yml").createNewFile());
+    }
+
+    /** Runs the real onEnable with the client it builds replaced, so nothing is ever sent. */
+    private void enablePlugin() {
+        try (MockedStatic<TraceClient> client = mockStatic(TraceClient.class)) {
+            client.when(() -> TraceClient.builder(ENDPOINT, "BookshelvesYouCanUse", PLUGIN_VERSION))
+                    .thenReturn(traceBuilder);
+
+            plugin.onEnable();
+        }
+    }
+
     private Command command(String name) {
         Command command = mock(Command.class);
         when(command.getName()).thenReturn(name);
@@ -308,8 +520,8 @@ class BookshelvesYouCanUseTest {
     }
 
     /**
-     * getBookshelfInventory, isDebugEnabled and onCommand read their collaborators from fields directly rather
-     * than through a getter, and Mockito builds the plugin mock without running field initializers,
+     * getBookshelfInventory, isDebugEnabled, onCommand, onEnable and onDisable read their collaborators from fields
+     * directly rather than through a getter, and Mockito builds the plugin mock without running field initializers,
      * so those fields have to be planted on the mock for the real methods to run against them.
      */
     private void plantOnPluginMock(String fieldName, Object value) {
