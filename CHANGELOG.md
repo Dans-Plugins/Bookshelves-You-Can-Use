@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- `CHANGELOG.md` now has a `0.3.3` section. The release was tagged `v0.3.3`, but everything it shipped was still listed under `Unreleased`.
+- `CONFIG.md`'s `version` example now shows the current plugin version again.
+
+## [0.3.3] – 2026-11-05
+
+### Fixed
+
 - `CHANGELOG.md` now has a `0.3.2` section. The release was tagged `v0.3.2`, but everything it shipped was still listed under `Unreleased`.
 - `CONFIG.md`'s `version` example now shows the current plugin version again.
 
