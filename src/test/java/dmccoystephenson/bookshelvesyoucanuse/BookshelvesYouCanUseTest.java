@@ -9,26 +9,34 @@ import dmccoystephenson.bookshelvesyoucanuse.trace.TraceClient;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.MockedStatic;
+import preponderous.ponder.minecraft.bukkit.PonderMC;
 import preponderous.ponder.minecraft.bukkit.abs.AbstractPluginCommand;
 import preponderous.ponder.minecraft.bukkit.services.CommandService;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -46,6 +54,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.RETURNS_SELF;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.inOrder;
@@ -441,6 +450,93 @@ class BookshelvesYouCanUseTest {
     }
 
     /**
+     * The tests that follow run the real onEnable, onCommand and Ponder CommandService against the
+     * built plugin.yml: Ponder only answers to the labels declared there, so the mocked command service
+     * in the tests above could not notice a label or the help command's wiring going missing.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"bycu", "bookshelvesyoucanuse"})
+    void theHelpCommandAnswersOnBothDocumentedLabels(String label, @TempDir Path pluginsFolder) {
+        givenAnEnabledPluginWithTheRealCommandService(pluginsFolder);
+        CommandSender sender = senderWithHelpPermission(true);
+
+        assertTrue(plugin.onCommand(sender, command(label), label, new String[]{"help"}));
+
+        verify(sender).sendMessage(ChatColor.AQUA + "/bycu");
+        verify(sender).sendMessage(ChatColor.AQUA + "/bycu help");
+    }
+
+    @Test
+    void theHelpCommandIgnoresAnythingTypedAfterIt(@TempDir Path pluginsFolder) {
+        givenAnEnabledPluginWithTheRealCommandService(pluginsFolder);
+        CommandSender sender = senderWithHelpPermission(true);
+
+        assertTrue(plugin.onCommand(sender, command("bycu"), "bycu", new String[]{"help", "extra"}));
+
+        verify(sender).sendMessage(ChatColor.AQUA + "/bycu help");
+    }
+
+    /**
+     * This is the check USER_GUIDE.md's permissions table describes. bycu.help defaults to true, so
+     * it only ever refuses a player whose permissions have been set to deny it.
+     */
+    @Test
+    void theHelpCommandIsRefusedWithoutItsPermission(@TempDir Path pluginsFolder) {
+        givenAnEnabledPluginWithTheRealCommandService(pluginsFolder);
+        CommandSender sender = senderWithHelpPermission(false);
+        ArgumentCaptor<String> refusal = ArgumentCaptor.forClass(String.class);
+
+        assertFalse(plugin.onCommand(sender, command("bycu"), "bycu", new String[]{"help"}));
+
+        verify(sender).hasPermission("bycu.help");
+        verify(sender).sendMessage(refusal.capture());
+        assertTrue(refusal.getValue().contains("bycu.help"), refusal.getValue());
+    }
+
+    /**
+     * Sub-command names are matched exactly, so a capitalized one is as unknown as a misspelled one.
+     * Neither reaches the permission check.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"nonsense", "HELP"})
+    void anUnknownSubCommandIsAnsweredWithTheNotFoundMessage(String subCommand, @TempDir Path pluginsFolder) {
+        givenAnEnabledPluginWithTheRealCommandService(pluginsFolder);
+        CommandSender sender = senderWithHelpPermission(true);
+
+        assertFalse(plugin.onCommand(sender, command("bycu"), "bycu", new String[]{subCommand}));
+
+        verify(sender).sendMessage(ChatColor.RED + "That command wasn't found.");
+        verify(sender, never()).hasPermission(anyString());
+    }
+
+    @Test
+    void aLabelPluginYmlDoesNotDeclareIsLeftUnanswered(@TempDir Path pluginsFolder) {
+        givenAnEnabledPluginWithTheRealCommandService(pluginsFolder);
+        CommandSender sender = senderWithHelpPermission(true);
+
+        assertFalse(plugin.onCommand(sender, command("bycu"), "somethingelse", new String[]{"help"}));
+
+        verifyNoInteractions(sender);
+    }
+
+    /**
+     * Without this the permission would still be checked, but nothing would grant it by default,
+     * and the help command would refuse every player who is not an operator.
+     */
+    @Test
+    void pluginYmlGrantsTheHelpPermissionToEveryoneByDefault() {
+        // Bukkit's Permission constructor reaches the plugin manager through the server.
+        bukkit.when(Bukkit::getServer).thenReturn(mock(Server.class, RETURNS_DEEP_STUBS));
+
+        Permission permission = bundledDescription().getPermissions().stream()
+                .filter(declared -> declared.getName().equals("bycu.help"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("plugin.yml does not declare bycu.help."));
+
+        assertEquals(PermissionDefault.TRUE, permission.getDefault());
+    }
+
+    /**
      * Commands and shutdown use the client onEnable built, not the no-op one the plugin starts with:
      * close is what sends any repeated command uses still being counted.
      */
@@ -501,6 +597,32 @@ class BookshelvesYouCanUseTest {
 
             plugin.onEnable();
         }
+    }
+
+    /**
+     * Replaces the mocked command service before enabling, so onEnable initializes a real one.
+     * Ponder reads the labels it answers to from the description, hence the plugin.yml from the build.
+     */
+    private void givenAnEnabledPluginWithTheRealCommandService(Path pluginsFolder) {
+        givenAPluginReadyToEnable(pluginsFolder);
+        PonderMC ponder = mock(PonderMC.class, RETURNS_DEEP_STUBS);
+        when(ponder.getPlugin().getDescription()).thenReturn(bundledDescription());
+        plantOnPluginMock("commandService", new CommandService(ponder));
+        enablePlugin();
+    }
+
+    private PluginDescriptionFile bundledDescription() {
+        try (InputStream pluginYml = BookshelvesYouCanUse.class.getResourceAsStream("/plugin.yml")) {
+            return new PluginDescriptionFile(pluginYml);
+        } catch (IOException | InvalidDescriptionException exception) {
+            throw new IllegalStateException("Could not read the built plugin.yml.", exception);
+        }
+    }
+
+    private CommandSender senderWithHelpPermission(boolean granted) {
+        CommandSender sender = mock(CommandSender.class);
+        when(sender.hasPermission("bycu.help")).thenReturn(granted);
+        return sender;
     }
 
     private Command command(String name) {
