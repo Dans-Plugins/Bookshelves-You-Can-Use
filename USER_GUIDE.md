@@ -43,5 +43,6 @@ After opening a bookshelf, there is a 2-second cooldown before you can open a bo
 - Bookshelf inventories are stored in memory and are **not** persisted across server restarts. They are also lost whenever the plugin is disabled and enabled again without a restart (for example by `/reload` or a plugin manager), because nothing saves them when the plugin is disabled.
 - Each bookshelf block in the world has its own independent inventory.
 - An inventory belongs to the block position, not the block. Breaking a bookshelf does **not** drop the items stored in it; they stay at that position, and a bookshelf placed there later opens with them.
+- Only the plain bookshelf block opens an inventory. Chiseled bookshelves are a different block and are left alone: right-clicking one inserts or takes a book as it does without the plugin.
 - Only right-clicks open a bookshelf. Left-clicking is left alone, so bookshelves are broken the usual way.
 - A right-click that opens a bookshelf is cancelled, so a held block is not placed against the bookshelf at the same time.
