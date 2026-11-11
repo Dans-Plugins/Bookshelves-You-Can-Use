@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `CHANGELOG.md` now has a `0.3.4` section. The release was tagged `v0.3.4`, but everything it shipped was still listed under `Unreleased`.
 - `CONFIG.md`'s `version` example now shows the current plugin version again.
 - `USER_GUIDE.md` now says that chiseled bookshelves are not affected by the plugin. Only the plain bookshelf block opens an inventory, as has always been the case; the guide's "any bookshelf block" left this unstated.
+- `COMMANDS.md` now says what the plugin answers for an unknown subcommand ("That command wasn't found.", matched case-sensitively) and for a player denied `bycu.help`, and that anything typed after `help` is ignored. The behaviour is unchanged; it was undocumented.
 
 ## [0.3.4] – 2026-11-07
 
