@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -38,6 +39,12 @@ public class InteractHandler implements Listener {
         Block block = event.getClickedBlock();
 
         if (block == null) {
+            return;
+        }
+
+        // another plugin (a region or claim protection plugin, say) has already denied
+        // interaction with this block, so the bookshelf stays shut too
+        if (event.useInteractedBlock() == Event.Result.DENY) {
             return;
         }
 
