@@ -12,6 +12,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
@@ -97,6 +98,31 @@ class InteractHandlerTest {
         verify(player).openInventory(bookshelfInventories.get(0).getInventory());
         verify(player).sendMessage("You rummage through the bookshelf.");
         assertTrue(event.isCancelled());
+    }
+
+    @Test
+    void aBookshelfStaysShutWhenAnotherPluginHasDeniedTheInteraction() {
+        PlayerInteractEvent event = interactEvent(Action.RIGHT_CLICK_BLOCK, bookshelf);
+        event.setUseInteractedBlock(Event.Result.DENY);
+
+        interactHandler.handle(event);
+
+        verify(player, never()).openInventory(any(Inventory.class));
+        verify(player, never()).sendMessage(anyString());
+        assertTrue(bookshelfInventories.isEmpty());
+        assertFalse(temporaryData.isPlayerOnCooldown(player));
+        verify(scheduler, never()).runTaskLater(any(), any(Runnable.class), anyLong());
+    }
+
+    @Test
+    void denyingOnlyTheHeldItemStillOpensTheBookshelf() {
+        PlayerInteractEvent event = interactEvent(Action.RIGHT_CLICK_BLOCK, bookshelf);
+        event.setUseItemInHand(Event.Result.DENY);
+
+        interactHandler.handle(event);
+
+        verify(player).openInventory(any(Inventory.class));
+        assertEquals(1, bookshelfInventories.size());
     }
 
     @Test

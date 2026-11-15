@@ -46,3 +46,4 @@ After opening a bookshelf, there is a 2-second cooldown before you can open a bo
 - Only the plain bookshelf block opens an inventory. Chiseled bookshelves are a different block and are left alone: right-clicking one inserts or takes a book as it does without the plugin.
 - Only right-clicks open a bookshelf. Left-clicking is left alone, so bookshelves are broken the usual way.
 - A right-click that opens a bookshelf is cancelled, so a held block is not placed against the bookshelf at the same time.
+- If another plugin, such as a region or claim protection plugin, has already denied the interaction with the bookshelf, the bookshelf does not open. This only applies if that plugin handles the event before Bookshelves You Can Use does. A plugin that denies only the use of the held item does not stop the bookshelf from opening.
