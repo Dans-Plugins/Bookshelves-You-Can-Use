@@ -115,6 +115,45 @@ class InteractHandlerTest {
     }
 
     @Test
+    void aBookshelfStaysShutWhenAnotherPluginHasCancelledTheEvent() {
+        // cancelling a PlayerInteractEvent denies the interacted block as well, so a plugin that
+        // only calls setCancelled(true) keeps the bookshelf shut just as an explicit deny does
+        PlayerInteractEvent event = interactEvent(Action.RIGHT_CLICK_BLOCK, bookshelf);
+        event.setCancelled(true);
+
+        interactHandler.handle(event);
+
+        verify(player, never()).openInventory(any(Inventory.class));
+        verify(player, never()).sendMessage(anyString());
+        assertTrue(bookshelfInventories.isEmpty());
+        assertFalse(temporaryData.isPlayerOnCooldown(player));
+    }
+
+    @Test
+    void aBookshelfAnotherPluginHasExplicitlyAllowedStillOpens() {
+        PlayerInteractEvent event = interactEvent(Action.RIGHT_CLICK_BLOCK, bookshelf);
+        event.setUseInteractedBlock(Event.Result.ALLOW);
+
+        interactHandler.handle(event);
+
+        verify(player).openInventory(any(Inventory.class));
+        assertTrue(event.isCancelled());
+        assertEquals(1, bookshelfInventories.size());
+    }
+
+    @Test
+    void aBlockRightClickWithNoClickedBlockDoesNothing() {
+        PlayerInteractEvent event = interactEvent(Action.RIGHT_CLICK_BLOCK, null);
+
+        interactHandler.handle(event);
+
+        verify(player, never()).openInventory(any(Inventory.class));
+        verify(player, never()).sendMessage(anyString());
+        assertTrue(bookshelfInventories.isEmpty());
+        assertFalse(temporaryData.isPlayerOnCooldown(player));
+    }
+
+    @Test
     void denyingOnlyTheHeldItemStillOpensTheBookshelf() {
         PlayerInteractEvent event = interactEvent(Action.RIGHT_CLICK_BLOCK, bookshelf);
         event.setUseItemInHand(Event.Result.DENY);
