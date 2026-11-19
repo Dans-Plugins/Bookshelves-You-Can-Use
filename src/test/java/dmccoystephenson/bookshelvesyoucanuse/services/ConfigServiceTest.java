@@ -5,6 +5,11 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -27,9 +32,13 @@ class ConfigServiceTest {
     private YamlConfiguration config;
     private ConfigService configService;
 
+    @TempDir
+    Path dataFolder;
+
     @BeforeEach
     void setUp() {
         plugin = mock(BookshelvesYouCanUse.class);
+        when(plugin.getDataFolder()).thenReturn(dataFolder.toFile());
         config = new YamlConfiguration();
         when(plugin.getConfig()).thenReturn(config);
         when(plugin.getVersion()).thenReturn("v0.0.1");
@@ -134,7 +143,7 @@ class ConfigServiceTest {
     void usageReportingUsesTheOneArgumentGettersSoBundledDefaultsApply() {
         FileConfiguration mockedConfig = mock(FileConfiguration.class);
         when(plugin.getConfig()).thenReturn(mockedConfig);
-        when(mockedConfig.getBoolean("usage-reporting.enabled")).thenReturn(true);
+        when(mockedConfig.get("usage-reporting.enabled")).thenReturn(true);
         when(mockedConfig.getString("usage-reporting.endpoint")).thenReturn("https://trace.danielstephenson.dev");
         when(mockedConfig.getString("usage-reporting.key")).thenReturn("bundled-key");
 
@@ -143,7 +152,7 @@ class ConfigServiceTest {
         assertEquals("bundled-key", configService.getUsageReportingKey());
         verify(mockedConfig, never()).getString(eq("usage-reporting.key"), anyString());
         verify(mockedConfig, never()).getString(eq("usage-reporting.endpoint"), anyString());
-        verify(mockedConfig, never()).getBoolean(eq("usage-reporting.enabled"), anyBoolean());
+        verify(mockedConfig, never()).get(eq("usage-reporting.enabled"), anyBoolean());
     }
 
     @Test
@@ -210,5 +219,25 @@ class ConfigServiceTest {
         assertFalse(configService.isUsageReportingEnabled());
         assertEquals("http://localhost:8080", configService.getUsageReportingEndpoint());
         assertEquals("abc", configService.getUsageReportingKey());
+    }
+
+    @Test
+    void aQuotedFalseTurnsReportingOff() throws Exception {
+        // getBoolean() reads the string "false" as the bundled default, true.
+        YamlConfiguration bundled = new YamlConfiguration();
+        bundled.set("usage-reporting.enabled", true);
+        config.setDefaults(bundled);
+        config.loadFromString("usage-reporting:\n  enabled: \"false\"\n");
+        assertTrue(config.getBoolean("usage-reporting.enabled"));
+
+        assertFalse(configService.isUsageReportingEnabled());
+    }
+
+    @Test
+    void anOptOutInTheFileOnDiskWinsOverTheLoadedConfig() throws Exception {
+        config.set("usage-reporting.enabled", true);
+        Files.write(configService.getConfigFile().toPath(), "usage-reporting:\n  enabled: false\n".getBytes(StandardCharsets.UTF_8));
+
+        assertFalse(configService.isUsageReportingEnabled());
     }
 }

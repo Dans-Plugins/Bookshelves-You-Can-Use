@@ -8,6 +8,7 @@ import dmccoystephenson.bookshelvesyoucanuse.exceptions.BookshelfInventoryNotFou
 import dmccoystephenson.bookshelvesyoucanuse.objects.BookshelfInventory;
 import dmccoystephenson.bookshelvesyoucanuse.services.ConfigService;
 import dmccoystephenson.bookshelvesyoucanuse.trace.TraceClient;
+import dmccoystephenson.bookshelvesyoucanuse.trace.UsageReportingSetting;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -60,6 +61,22 @@ public final class BookshelvesYouCanUse extends PonderBukkitPlugin {
         trace.report("startup");
 
         System.out.println("BYCU has enabled.");
+    }
+
+    /**
+     * Every save of config.yml goes through here, so none of them can lose the operator's
+     * settings, usage-reporting opt-out included. A file that cannot be parsed -- which Bukkit
+     * loads as empty, so the version stamp and the copied usage-reporting block would otherwise
+     * be written over it with enabled: true -- is never overwritten, and an opt-out written to
+     * the file while the server was running is kept rather than replaced by a stale copy.
+     */
+    @Override
+    public void saveConfig() {
+        if (!UsageReportingSetting.prepareSave(getConfig(), configService.getConfigFile(), false)) {
+            getLogger().severe(UsageReportingSetting.UNPARSEABLE_MESSAGE);
+            return;
+        }
+        super.saveConfig();
     }
 
     /**

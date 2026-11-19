@@ -32,7 +32,7 @@ A `config.yml` written by a version before this block existed gets the three key
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `usage-reporting.enabled` | `true` | Whether the plugin reports usage events. Set to `false` to turn it off. |
+| `usage-reporting.enabled` | `true` | Whether the plugin reports usage events. Set to `false` to turn it off. Only `true` (or `on`, `yes`, `1`) turns it on; any other value, a quoted `"false"` included, turns it off. The plugin never writes it back on: a save of `config.yml` keeps an `enabled: false` that is on disk, and a `config.yml` that cannot be parsed is never overwritten (reporting stays off until it is fixed). |
 | `usage-reporting.endpoint` | `https://trace.danielstephenson.dev` | The trace server events are sent to. |
 | `usage-reporting.key` | the plugin's key | Identifies this plugin to the trace server so reports are attributed to it. Not a secret: it ships in the default config and can only report as BookshelvesYouCanUse. Empty means reporting is off regardless of `enabled`. |
 
