@@ -8,6 +8,9 @@ package dmccoystephenson.bookshelvesyoucanuse.services;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import dmccoystephenson.bookshelvesyoucanuse.BookshelvesYouCanUse;
+import dmccoystephenson.bookshelvesyoucanuse.trace.UsageReportingSetting;
+
+import java.io.File;
 
 import java.util.Arrays;
 
@@ -125,8 +128,17 @@ public class ConfigService {
     // off on every existing installation. Verified against YamlConfiguration,
     // not assumed.
 
+    /**
+     * Fails closed: only a value that clearly means on (not a quoted "false", which
+     * getBoolean() would read as the bundled true) turns reporting on, and an opt-out in
+     * config.yml on disk wins over the loaded copy.
+     */
     public boolean isUsageReportingEnabled() {
-        return getConfig().getBoolean(USAGE_REPORTING_ENABLED_KEY);
+        return UsageReportingSetting.isEnabled(getConfig(), getConfigFile());
+    }
+
+    public File getConfigFile() {
+        return new File(plugin.getDataFolder(), "config.yml");
     }
 
     public String getUsageReportingEndpoint() {
