@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - Usage reporting now stays off once an operator turns it off. A quoted `enabled: "false"` (or any value that is not a boolean) was read as on. A `config.yml` with a YAML error, which Bukkit loads as empty, was overwritten on the next startup with the bundled defaults (`enabled: true`) by the version stamp or the copied `usage-reporting` block, replacing the operator's whole file. Now only `true`, `on`, `yes` or `1` turns reporting on, an opt-out in `config.yml` on disk always wins, every save of `config.yml` keeps it, and a `config.yml` that cannot be parsed is never overwritten (an error is logged and reporting is off).
+- An empty `usage-reporting.enabled:` (no value) now turns usage reporting off. Bukkit drops a key with no value, so the bundled `true` used to win.
 - The vendored trace client is now 0.8.0, whose opt-outs fail closed: a quoted `"false"` or a typo in `plugins/trace/config.yml`, an unreadable `plugins/trace/config.yml`, and `TRACE_USAGE_REPORTING` set to anything but blank or `true`/`on`/`yes`/`1` (such as `disabled`) now turn reporting off. Details: https://github.com/Stephenson-Software/trace-client-java/pull/51.
 - `CHANGELOG.md` now has a `0.3.5` section. The release was tagged `v0.3.5`, but everything it shipped was still listed under `Unreleased`.
 - `CONFIG.md`'s `version` example now shows the current plugin version again.
