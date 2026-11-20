@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- `CHANGELOG.md` now has a `0.4.0` section. The release was tagged `v0.4.0`, but everything it shipped was still listed under `Unreleased`.
+- `CONFIG.md`'s `version` example now shows the current plugin version again.
+
+## [0.4.0] – 2026-11-20
+
+### Fixed
+
 - Usage reporting stayed on when the opt-out was written in a way the plugin did not recognise: under another spelling of the block (`usage_reporting:`, `usageReporting:`), as `usage-reporting: false`, or with another spelling of the switch (`enable: false`, `disabled: true`). When the plugin wrote `config.yml` (on a version change, for example), it also added the bundled `usage-reporting` block, `enabled: true`, next to the operator's setting. Each of these now counts as off, and every save writes `usage-reporting.enabled: false` into the real block, so the file shows that reporting is off.
 - Usage reporting now stays off once an operator turns it off. A quoted `enabled: "false"` (or any value that is not a boolean) was read as on. A `config.yml` with a YAML error, which Bukkit loads as empty, was overwritten on the next startup with the bundled defaults (`enabled: true`) by the version stamp or the copied `usage-reporting` block, replacing the operator's whole file. Now only `true`, `on`, `yes` or `1` turns reporting on, an opt-out in `config.yml` on disk always wins, every save of `config.yml` keeps it, and a `config.yml` that cannot be parsed is never overwritten (an error is logged and reporting is off).
 - An empty `usage-reporting.enabled:` (no value) now turns usage reporting off. Bukkit drops a key with no value, so the bundled `true` used to win.
